@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use crate::{AssetState, ProgramState, constants::{PROGRAM_STATE_SEED, ASSET_STATE_SEED}};
+use crate::{constants::{ASSET_STATE_SEED, PROGRAM_STATE_SEED}, AssetArgs, AssetState, ProgramState};
 
-pub fn create_asset(ctx: Context<CreateAsset>, asset_args: AssetArgs) -> Result<()> {
+pub fn put_asset(ctx: Context<PutAsset>, asset_args: AssetArgs) -> Result<()> {
     ctx.accounts.asset_state.set_inner(AssetState {
         key: asset_args.asset_mint,
         increase_food: asset_args.increase_food,
@@ -15,10 +15,10 @@ pub fn create_asset(ctx: Context<CreateAsset>, asset_args: AssetArgs) -> Result<
 
 #[derive(Accounts)]
 #[instruction(asset_args: AssetArgs)]
-pub struct CreateAsset<'info> {
+pub struct PutAsset<'info> {
     // states (pda's)
     #[account(
-        init,
+        init_if_needed,
         seeds=[ASSET_STATE_SEED.as_bytes(), asset_args.asset_mint.as_ref()],
         bump,
         payer = signer,
@@ -42,12 +42,4 @@ pub struct CreateAsset<'info> {
     // Programs
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct AssetArgs {
-    pub asset_mint: Pubkey,
-    pub increase_food: u8,
-    pub increase_loneliness: u8,
-    pub increase_love: u8,
 }

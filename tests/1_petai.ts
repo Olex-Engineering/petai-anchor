@@ -14,7 +14,6 @@ describe("Initialization and state", () => {
       try {
         const tx = await program.methods.initialize().accounts({
           state: statePda,
-          tokenMint,
         }).rpc();
       } catch(error) {
         console.log(error);

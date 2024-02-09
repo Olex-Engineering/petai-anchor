@@ -4,7 +4,7 @@ use anchor_spl::{metadata::{mpl_token_metadata::{accounts::{MasterEdition, Metad
 
 use crate::{models::MetatadataArgs, constants::{PROGRAM_STATE_SEED, SELLER_FEE}, states::program_state::ProgramState};
 
-pub fn update_token(ctx: Context<UpdateTokenMetadata>, _mint_seed: String, metadata_args: MetatadataArgs) -> Result<()> {
+pub fn update_token(ctx: Context<UpdateTokenMetadata>, metadata_args: MetatadataArgs) -> Result<()> {
     let metadata_program_info = ctx.accounts.metadata_program.to_account_info();
     let authority = ctx.accounts.state.to_account_info();
     let token = ctx.accounts.ata_account.to_account_info();
@@ -43,7 +43,6 @@ pub fn update_token(ctx: Context<UpdateTokenMetadata>, _mint_seed: String, metad
 
 
 #[derive(Accounts)]
-#[instruction(mint_seed: String)]
 pub struct UpdateTokenMetadata<'info> {
     #[account(
         seeds=[PROGRAM_STATE_SEED.as_bytes()],
@@ -57,10 +56,7 @@ pub struct UpdateTokenMetadata<'info> {
     )]
     ata_account: Account<'info, TokenAccount>,
 
-    #[account(
-        seeds=[mint_seed.as_bytes(), initializer.key.as_ref()],
-        bump,
-    )]
+    #[account()]
     mint: Account<'info, Mint>,
     /// CHECK: verify address
     #[account(

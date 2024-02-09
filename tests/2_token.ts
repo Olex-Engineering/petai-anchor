@@ -17,7 +17,6 @@ describe("Token logic", () => {
       try {
         await program.methods.createToken(
           PET_COLLECTION_MINT_SEED,
-          null,
           new anchor.BN(1),
           {
             name: 'Test collection',
@@ -53,6 +52,7 @@ describe("Token logic", () => {
             collectionMetadata: null,
             collectionMasterEdition: null
           })
+          .signers([])
           .rpc()
     
         const state = await program.account.programState.fetch(statePda);
@@ -75,7 +75,7 @@ describe("Token logic", () => {
       );
   
       try {
-        await program.methods.updateToken(PET_COLLECTION_MINT_SEED, {
+        await program.methods.updateToken({
           name: 'Test updated collection',
           symbol: 'TTTT',
           uri: 'https://test.com',
@@ -108,7 +108,6 @@ describe("Token logic", () => {
           })
           .rpc()
       } catch (error) {
-        console.log(error);
         expect(error).not.exist;
       }
       
@@ -132,7 +131,6 @@ describe("Token logic", () => {
     try {
       await secondUserProgram.methods.createToken(
         PET_NFT_MINT_SEED,
-        PET_COLLECTION_MINT_SEED,
         new anchor.BN(1),
         {
           name: 'Test collection',
@@ -190,7 +188,6 @@ describe("Token logic", () => {
     try {
       await program.methods.createToken(
         ASSET_COLLECTION_MINT_SEED,
-        null,
         new anchor.BN(1),
         {
           name: 'Asset collection',
@@ -247,7 +244,6 @@ describe("Token logic", () => {
     try {
       await program.methods.createToken(
         ASSET_TEST_MINT_SEED,
-        ASSET_COLLECTION_MINT_SEED,
         new anchor.BN(10),
         {
           name: 'Asset fungible',

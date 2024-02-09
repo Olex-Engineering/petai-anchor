@@ -10,6 +10,7 @@ export const ASSET_COLLECTION_MINT_SEED = 'asset-collection-mint-seed';
 export const PLAYER_STATE_SEED = 'player-state';
 export const PET_STATE_SEED = 'pet-state';
 export const ASSET_STATE_SEED = 'asset-state';
+export const DECOR_STATE_SEED = 'decor-state';
 export const PET_NFT_MINT_SEED = 'pet-nft-mint';
 export const ASSET_TEST_MINT_SEED = 'asset-test-mint';
 export const MPL_TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');

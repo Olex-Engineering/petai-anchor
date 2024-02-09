@@ -14,7 +14,7 @@ describe("Assets logic", () => {
       )
 
 
-      await program.methods.createAsset(
+      await program.methods.putAsset(
         {
           assetMint: assetMint,
           increaseFood: 1,

@@ -3,7 +3,20 @@ use anchor_spl::{token::{Mint, Token, TokenAccount, MintTo, mint_to}, metadata::
 
 use crate::{constants::{PROGRAM_STATE_SEED, SELLER_FEE}, states::program_state::ProgramState, models::MetatadataArgs};
 
-pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, collection_seed: Option<String>, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
+/// Creates a new token.
+///
+/// # Arguments
+///
+/// * `ctx` - The context in which this function is called.
+/// * `mint_seed` - Mint seed.
+/// * `collection_seed` - An optional seed for the collection.
+/// * `amount` - The amount of the token to mint.
+/// * `metadata_args` - The metadata arguments for the token.
+///
+/// # Returns
+///
+/// * `Result<()>` - Returns `Ok(())` if the token is successfully created, otherwise returns an error.
+pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
     let metadata_program_info = &ctx.accounts.metadata_program.to_account_info();
     let metadata_info = &ctx.accounts.metadata_account.to_account_info();
     let mint_info = &ctx.accounts.mint.to_account_info();
@@ -70,7 +83,7 @@ pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, collection_se
 
     msg!("Created");
 
-    if collection_seed.is_some() {
+    if ctx.accounts.collection_mint.is_some() {
         let collection_mint_info = ctx.accounts.collection_mint.as_ref().unwrap().to_account_info();
         let collection_metadata_info = ctx.accounts.collection_metadata.as_ref().unwrap().to_account_info();
         let collection_master_edition_info = ctx.accounts.collection_master_edition.as_ref().unwrap().to_account_info();
@@ -102,7 +115,7 @@ pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, collection_se
 }
 
 #[derive(Accounts)]
-#[instruction(mint_seed: String, collection_seed: Option<String>)]
+#[instruction(mint_seed: String)]
 pub struct CreateToken<'info> {
     #[account(
         seeds=[PROGRAM_STATE_SEED.as_bytes()],
@@ -134,10 +147,7 @@ pub struct CreateToken<'info> {
     pub master_edition: Option<UncheckedAccount<'info>>,
 
     // Collection accounts
-    #[account(
-        seeds=[collection_seed.unwrap().as_bytes(), state.authority.as_ref()],
-        bump
-    )]
+    #[account()]
     pub collection_mint: Option<Account<'info, Mint>>,
     /// CHECK: verify address
     #[account(

@@ -22,12 +22,12 @@ pub mod petai {
         return instructions::update_program_state(ctx, data);
     }
 
-    pub fn create_token(ctx: Context<CreateToken>, mint_seed: String, collection_seed: Option<String>, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
-        return instructions::create_token(ctx, mint_seed, collection_seed, amount, metadata_args);
+    pub fn create_token(ctx: Context<CreateToken>, mint_seed: String, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
+        return instructions::create_token(ctx, mint_seed, amount, metadata_args);
     }
 
-    pub fn update_token(ctx: Context<UpdateTokenMetadata>, mint_seed: String, metadata_args: MetatadataArgs) -> Result<()> {
-        return instructions::update_token(ctx, mint_seed, metadata_args);
+    pub fn update_token(ctx: Context<UpdateTokenMetadata>, metadata_args: MetatadataArgs) -> Result<()> {
+        return instructions::update_token(ctx, metadata_args);
     }
 
     pub fn init_player_state(
@@ -49,12 +49,17 @@ pub mod petai {
     }
 
     // Assets
-    pub fn create_asset(ctx: Context<CreateAsset>, asset_args: AssetArgs) -> Result<()> {
-        return instructions::create_asset(ctx, asset_args);
+    pub fn put_asset(ctx: Context<PutAsset>, asset_args: AssetArgs) -> Result<()> {
+        return instructions::put_asset(ctx, asset_args);
     }
 
     pub fn use_asset(ctx: Context<UseAsset>, mint_seed: String, amount: u8) -> Result<()> {
         return instructions::use_asset(ctx, mint_seed, amount);
+    }
+
+    // Decors
+    pub fn put_decor(ctx: Context<PutDecor>, decor_args: DecorArgs) -> Result<()> {
+        return instructions::put_decor(ctx, decor_args);
     }
 }
 
