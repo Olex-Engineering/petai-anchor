@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::GameEffect;
+
 #[account]
 #[derive(Default)]
 pub struct PlayerState {
@@ -7,7 +9,7 @@ pub struct PlayerState {
     pub current_effects: Vec<GameEffect>, // 4 + items
     pub decors: Vec<Pubkey>, // 4 + items
     pub updated_at: i64, // 8
-    pub last_free_collection_mint: i64, // 8
+    pub last_free_assets_collected: i64, // 8
     pub bump: u8, // 1
 }
 
@@ -35,25 +37,3 @@ impl PlayerState {
 }
 
 // TODO: add other effects
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct GameEffect {
-    effect_type: GameEffectType, // 1
-    effect_power: u8, // 1
-    end: i64 // 8
-}
-
-impl GameEffect {
-    pub fn get_size() -> usize {
-        return 1 + 1 + 8;
-    }
-
-    const MAX_EFFECT_COUNT: usize = 4;
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub enum GameEffectType {
-    Love,
-    Game,
-    Walk,
-    Food
-}
