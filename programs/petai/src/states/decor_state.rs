@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::decors::DecorType;
+
 #[account]
 pub struct DecorState {
     pub key: Pubkey, // 32
@@ -13,11 +15,3 @@ impl DecorState {
     }
 }
 
-#[derive(AnchorDeserialize, AnchorSerialize, Clone)]
-pub enum DecorType {
-    Background,
-    OnTheWall,
-    Table,
-    Floor,
-    Bowl
-}

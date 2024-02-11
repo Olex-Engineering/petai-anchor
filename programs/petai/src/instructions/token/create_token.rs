@@ -121,7 +121,7 @@ pub struct CreateToken<'info> {
         seeds=[PROGRAM_STATE_SEED.as_bytes()],
         bump=state.bump,
     )]
-    state: Box<Account<'info, ProgramState>>,
+    state: Account<'info, ProgramState>,
 
     #[account(
         init,

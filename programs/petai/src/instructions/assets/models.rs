@@ -6,4 +6,5 @@ pub struct AssetArgs {
     pub increase_food: u8,
     pub increase_loneliness: u8,
     pub increase_love: u8,
+    pub price: u64,
 }

@@ -30,6 +30,10 @@ pub mod petai {
         return instructions::update_token(ctx, metadata_args);
     }
 
+    pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
+        return instructions::mint_token(ctx, amount);
+    }
+
     pub fn init_player_state(
         ctx: Context<InitPlayerState>,
         pet_states: Vec<Vec<String>>,

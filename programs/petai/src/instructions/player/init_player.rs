@@ -3,7 +3,7 @@ use anchor_spl::{token::Mint, metadata::{Metadata as MetadataProgram, MetadataAc
 use mpl_token_metadata::accounts::Metadata;
 
 
-use crate::{constants::{PET_NFT_MINT_SEED, PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, errors::PetaiErrorCode, states::{program_state::{ProgramState, RealDogConfig}, player_state::PlayerState}, PetState, ID};
+use crate::{constants::{PET_NFT_MINT_SEED, PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, errors::PetaiErrorCode, states::{player_state::PlayerState, program_state::ProgramState}, PetState, RealDogConfig, ID};
 
 use clockwork_sdk::state::Thread;
 
@@ -87,7 +87,11 @@ fn start_cron_tread(ctx: &Context<InitPlayerState>, thread_id: &Vec<u8>) -> Prog
 }
 
 #[derive(Accounts)]
-#[instruction(pet_states: Vec<Vec<String>>, real_dog_config: RealDogConfig, thread_id: Vec <u8>)]
+#[instruction(
+    pet_states: Vec<Vec<String>>,
+    real_dog_config: RealDogConfig,
+    thread_id: Vec <u8>
+)]
 pub struct InitPlayerState<'info> {
     // states (pda's)
     #[account(
@@ -95,7 +99,7 @@ pub struct InitPlayerState<'info> {
         seeds=[PLAYER_STATE_SEED.as_bytes(), signer.key.as_ref()],
         bump,
         payer = signer,
-        space = PlayerState::get_size(pet_states)
+        space = PlayerState::get_size(pet_states, None)
     )]
     pub player_state: Account<'info, PlayerState>,
     #[account(

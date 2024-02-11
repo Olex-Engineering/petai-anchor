@@ -7,6 +7,7 @@ pub fn put_asset(ctx: Context<PutAsset>, asset_args: AssetArgs) -> Result<()> {
         increase_food: asset_args.increase_food,
         increase_loneliness: asset_args.increase_loneliness,
         increase_love: asset_args.increase_love,
+        price: asset_args.price,
         bump: ctx.bumps.asset_state
     });
 
