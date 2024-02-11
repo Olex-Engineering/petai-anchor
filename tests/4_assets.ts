@@ -20,6 +20,7 @@ describe("Assets logic", () => {
           increaseFood: 1,
           increaseLoneliness: 0,
           increaseLove: 0,
+          price: new anchor.BN(10),
           
         })
       .accounts({
