@@ -9,6 +9,8 @@ pub struct PetState {
     pub food: u8, // 1
     pub love: u8, // 1
     pub updates_number: u32, // 4
+    pub updated_at: i64, // 8
+    pub is_died: bool, // 1
     pub bump: u8 // 1
 }
 
@@ -18,18 +20,20 @@ impl Default for PetState {
             current_pet_nft: Pubkey::default(),
             condition: PetCondition::Super,
             age: PetAge::Kid,
-            updates_number: 0,
             loneliness: 100,
             food: 100,
             love: 100,
-            bump: 0
+            updates_number: 0,
+            updated_at: Clock::get().unwrap().unix_timestamp,
+            is_died: false,
+            bump: 0,
         }
     }
 }
 
 impl PetState {
     pub fn get_size() -> usize {
-        return 8 + 32 + 1 + 1 + 1 + 1 + 1 + 4 + 1;
+        return 8 + 32 + 1 + 1 + 1 + 1 + 1 + 4 + 8 + 1 + 1;
     }
 
     pub fn incease_pet_state_params(&mut self, updates: PetStateUpdates) {

@@ -9,7 +9,6 @@ pub struct PlayerState {
     pub current_effects: Vec<GameEffect>, // 4 + items
     pub real_dog_treasury: Pubkey, // 32
     pub decors: Vec<Pubkey>, // 4 + items
-    pub updated_at: i64, // 8
     pub bump: u8, // 1
 }
 

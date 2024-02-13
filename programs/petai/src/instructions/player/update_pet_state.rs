@@ -20,7 +20,7 @@ pub fn update_player_state_cron(ctx: Context<UpdatePetStateCron>, _: Pubkey) -> 
     pet.update_condition_if_needed();
     pet.update_age_if_needed();
 
-    ctx.accounts.player_state.updated_at = Clock::get().unwrap().unix_timestamp;
+    ctx.accounts.pet_state.updated_at = Clock::get().unwrap().unix_timestamp;
 
     return Ok(());
 }
