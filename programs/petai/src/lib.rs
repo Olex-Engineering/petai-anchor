@@ -18,8 +18,8 @@ pub mod petai {
         return instructions::initialize(ctx);
     }
 
-    pub fn update_program_state(ctx: Context<UpdateProgramState>, data: ProgramState, real_dogs_config: RealDogsConfigState) -> Result<()> {
-        return instructions::update_program_state(ctx, data, real_dogs_config);
+    pub fn update_program_state(ctx: Context<UpdateProgramState>, data: ProgramState, real_dogs_wallet: Option<Vec<Pubkey>>) -> Result<()> {
+        return instructions::update_program_state(ctx, data, real_dogs_wallet);
     }
 
     pub fn create_token(ctx: Context<CreateToken>, mint_seed: String, decimals: Option<u8>, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
@@ -38,13 +38,13 @@ pub mod petai {
         ctx: Context<InitPlayerState>,
         pet_states: Vec<Vec<String>>,
         thread_id: Vec<u8>,
-        real_dog_config: RealDogConfig,
+        real_dog_wallet: Pubkey,
     ) -> Result<()> {
         return instructions::init_player(
             ctx,
             pet_states,
             thread_id,
-            real_dog_config,
+            real_dog_wallet,
         );
     }
 
@@ -63,6 +63,10 @@ pub mod petai {
 
     pub fn buy_asset(ctx: Context<BuyAsset>, amount: u32) -> Result<()> {
         return instructions::buy_asset(ctx, amount);
+    }
+
+    pub fn collect_asset(ctx: Context<CollectFreeAssets>) -> Result<()> {
+        return instructions::collect_asset(ctx);
     }
 
     // Decors

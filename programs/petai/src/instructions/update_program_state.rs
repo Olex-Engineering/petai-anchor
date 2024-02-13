@@ -1,23 +1,24 @@
 use anchor_lang::prelude::*;
 use crate::states::program_state::ProgramState;
 use crate::constants::{PROGRAM_STATE_SEED, REAL_DOGS_STATE_SEED};
-use crate::RealDogsConfigState;
+use crate::RealDogsWalletState;
 
 pub fn update_program_state(
     ctx: Context<UpdateProgramState>,
     data: ProgramState,
-    real_dogs: RealDogsConfigState
+    real_dogs: Option<Vec<Pubkey>>
 ) -> Result<()> {
     ctx.accounts.state.set_inner(data);
 
-    ctx.accounts.real_dogs_state.configs = real_dogs.configs;
+    if real_dogs.is_some() {
+        ctx.accounts.real_dogs_state.wallets = real_dogs.unwrap();
+    }
 
     return Ok(());
 }
 
-
 #[derive(Accounts)]
-#[instruction(_data: ProgramState, real_dogs: RealDogsConfigState)]
+#[instruction(_data: ProgramState, real_dogs: Option<Vec<Pubkey>>)]
 pub struct UpdateProgramState<'info> {
     #[account(
         mut,
@@ -30,12 +31,11 @@ pub struct UpdateProgramState<'info> {
         mut,
         seeds=[REAL_DOGS_STATE_SEED.as_bytes()],
         bump=real_dogs_state.bump,
-        realloc=RealDogsConfigState::get_size(real_dogs.configs.as_ref()),
+        realloc=RealDogsWalletState::get_size(real_dogs.as_ref()),
         realloc::payer=signer,
         realloc::zero=true,
     )]
-    pub real_dogs_state: Account<'info, RealDogsConfigState>,
-
+    pub real_dogs_state: Account<'info, RealDogsWalletState>,
     #[account(
         mut,
         address=state.authority

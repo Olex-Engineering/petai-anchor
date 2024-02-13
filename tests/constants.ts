@@ -5,6 +5,7 @@ import * as anchor from "@coral-xyz/anchor";
 
 export const PROGRAM_STATE_SEED = 'state';
 export const REAL_DOG_STATE_SEED = 'real-dogs-state';
+export const FREE_ASSETS_STATE_SEED = 'free-assets-state';
 export const TOKEN_MINT_SEED = 'token-mint'
 export const PET_COLLECTION_MINT_SEED = 'pet-collection-mint-seed';
 export const ASSET_COLLECTION_MINT_SEED = 'asset-collection-mint-seed';

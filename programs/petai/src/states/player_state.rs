@@ -10,7 +10,6 @@ pub struct PlayerState {
     pub real_dog_treasury: Pubkey, // 32
     pub decors: Vec<Pubkey>, // 4 + items
     pub updated_at: i64, // 8
-    pub last_free_assets_collected: i64, // 8
     pub bump: u8, // 1
 }
 
@@ -19,7 +18,7 @@ impl PlayerState {
         pet_states: Vec<Vec<String>>,
         decors: Option<Vec<Pubkey>>
     ) -> usize {
-        let mut current_size = 8 + 4 + 4 + 32 + 4 + 8 + 8 + 1;
+        let mut current_size = 8 + 4 + 4 + 32 + 4 + 8 + 1;
 
         for age in pet_states.iter() {
             for condition in age {

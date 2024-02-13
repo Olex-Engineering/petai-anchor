@@ -3,7 +3,7 @@ use anchor_spl::{token::Mint, metadata::{Metadata as MetadataProgram, MetadataAc
 use mpl_token_metadata::accounts::Metadata;
 
 
-use crate::{constants::{PET_NFT_MINT_SEED, PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PLAYER_STATE_SEED, PROGRAM_STATE_SEED, REAL_DOGS_STATE_SEED}, errors::PetaiErrorCode, states::{player_state::PlayerState, program_state::ProgramState}, PetState, RealDogConfig, RealDogsConfigState, ID};
+use crate::{constants::{PET_NFT_MINT_SEED, PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PLAYER_STATE_SEED, PROGRAM_STATE_SEED, REAL_DOGS_STATE_SEED}, errors::PetaiErrorCode, states::{player_state::PlayerState, program_state::ProgramState}, PetState, RealDogsWalletState, ID};
 
 use clockwork_sdk::state::Thread;
 
@@ -11,11 +11,11 @@ pub fn init_player(
     ctx: Context<InitPlayerState>,
     pet_states: Vec<Vec<String>>,
     thread_id: Vec<u8>,
-    real_dog_config: RealDogConfig,
+    real_dog_wallet: Pubkey,
 ) -> Result<()> {
     msg!("Start init player");
-    let is_real_dog_valid = ctx.accounts.real_dogs_config_state.configs.as_ref().unwrap().iter()
-        .find(|valid_config| Pubkey::eq(&valid_config.wallet, &real_dog_config.wallet));
+    let is_real_dog_valid = ctx.accounts.real_dogs_config_state.wallets.iter()
+        .find(|valid_wallet| Pubkey::eq(&valid_wallet, &real_dog_wallet));
 
     require!(
         ctx.accounts.metadata_account.collection.as_ref().is_some_and(|collection| collection.verified == true
@@ -32,7 +32,7 @@ pub fn init_player(
     pet_state.current_pet_nft = ctx.accounts.pet_nft_mint.key();
     pet_state.bump = ctx.bumps.pet_state;
 
-    player_state.real_dog_treasury = real_dog_config.wallet;
+    player_state.real_dog_treasury = real_dog_wallet;
     player_state.pet_states = pet_states;
     player_state.bump = ctx.bumps.player_state;
     
@@ -122,7 +122,7 @@ pub struct InitPlayerState<'info> {
         bump=real_dogs_config_state.bump
 
     )]
-    pub real_dogs_config_state: Account<'info, RealDogsConfigState>,
+    pub real_dogs_config_state: Account<'info, RealDogsWalletState>,
 
     // Pet nft accounts
     #[account(

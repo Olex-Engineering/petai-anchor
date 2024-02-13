@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { expect } from "chai";
 import { provider, program, secondUserProvider,} from "./constants";
-import { statePda, petCollectionMint, assetCollectionMint, tokenMint, realDogsState } from "./pdas";
+import { statePda, petCollectionMint, assetCollectionMint, tokenMint, realDogsState, CollectableAssetState } from "./pdas";
 
 describe("Initialization and state", () => {
   anchor.setProvider(provider);
@@ -14,7 +14,7 @@ describe("Initialization and state", () => {
       try {
         const tx = await program.methods.initialize().accounts({
           state: statePda,
-          realDogsState: realDogsState
+          realDogsState: realDogsState,
         }).rpc();
       } catch(error) {
         console.log(error);
@@ -27,20 +27,16 @@ describe("Initialization and state", () => {
     const initialState = await program.account.programState.fetch(statePda);
 
     try {
-      const tx = await program.methods.updateProgramState({
-        bump: initialState.bump,
-        authority: provider.wallet.publicKey,
-        petCollection: petCollectionMint,
-        assetCollection: assetCollectionMint,
-        tokenMint: tokenMint,
-        decorCollection: anchor.web3.Keypair.generate().publicKey,
-      },
-      {
-        configs: [{
-          wallet: provider.wallet.publicKey,
-          uri: 'http:test.ocm'
-        }]
-      }
+      const tx = await program.methods.updateProgramState(
+        {
+          bump: initialState.bump,
+          authority: provider.wallet.publicKey,
+          petCollection: petCollectionMint,
+          assetCollection: assetCollectionMint,
+          tokenMint: tokenMint,
+          decorCollection: anchor.web3.Keypair.generate().publicKey,
+        },
+        [provider.wallet.publicKey],
       ).accounts({
         state: statePda,
         realDogsState: realDogsState
@@ -52,6 +48,5 @@ describe("Initialization and state", () => {
       console.log(error);
       expect(error).not.exist;
     }
-    
   });
 });

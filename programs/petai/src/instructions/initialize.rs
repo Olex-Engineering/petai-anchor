@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::states::program_state::ProgramState;
 use crate::constants::{PROGRAM_STATE_SEED, REAL_DOGS_STATE_SEED};
-use crate::RealDogsConfigState;
+use crate::RealDogsWalletState;
 
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     // TODO: create token 
@@ -12,6 +12,7 @@ pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     ctx.accounts.state.set_inner(program_state);
     
     ctx.accounts.real_dogs_state.bump = ctx.bumps.real_dogs_state;
+    
     return Ok(());
 }
 
@@ -29,11 +30,11 @@ pub struct Initialize<'info> {
         init,
         seeds=[REAL_DOGS_STATE_SEED.as_bytes()],
         bump,
-        space=RealDogsConfigState::get_size(None),
+        space=RealDogsWalletState::get_size(None),
         payer=initializer
 
     )]
-    pub real_dogs_state: Account<'info, RealDogsConfigState>,
+    pub real_dogs_state: Account<'info, RealDogsWalletState>,
     #[account(mut)]
     pub initializer: Signer<'info>,
     pub system_program: Program<'info, System>,

@@ -3,6 +3,7 @@ pub const PROGRAM_STATE_SEED: &str = "state";
 pub const PET_NFT_MINT_SEED: &str = "pet-nft-mint";
 pub const PLAYER_STATE_SEED: &str = "player-state";
 pub const REAL_DOGS_STATE_SEED: &str = "real-dogs-state";
+pub const FREE_ASSETS_STATE_SEED: &str = "free-assets-state";
 pub const PET_STATE_SEED: &str = "pet-state";
 pub const ASSET_STATE_SEED: &str = "asset-state";
 pub const DECOR_STATE_SEED: &str = "decor-state";

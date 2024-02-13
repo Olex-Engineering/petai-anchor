@@ -21,9 +21,7 @@ describe("Player logic", () => {
           const tx = await secondUserProgram.methods.initPlayerState(
             [],
             Buffer.from(threadId),
-            {
-              wallet: provider.wallet.publicKey,
-            },
+            provider.wallet.publicKey
           )
           .accounts({
             state: statePda,

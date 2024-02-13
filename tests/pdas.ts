@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { ASSET_COLLECTION_MINT_SEED, ASSET_STATE_SEED, ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, PET_COLLECTION_MINT_SEED, PET_NFT_MINT_SEED, PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED, REAL_DOG_STATE_SEED, TOKEN_MINT_SEED, clockworkProvider, program, provider, secondUserProvider, threadId } from "./constants"
+import { ASSET_COLLECTION_MINT_SEED, ASSET_STATE_SEED, ASSET_TEST_MINT_SEED, FREE_ASSETS_STATE_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, PET_COLLECTION_MINT_SEED, PET_NFT_MINT_SEED, PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED, REAL_DOG_STATE_SEED, TOKEN_MINT_SEED, clockworkProvider, program, provider, secondUserProvider, threadId } from "./constants"
 
 export const [statePda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(PROGRAM_STATE_SEED)],
@@ -10,6 +10,12 @@ export const [realDogsState] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(REAL_DOG_STATE_SEED)],
     program.programId
   );
+
+export const [CollectableAssetState] = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from(FREE_ASSETS_STATE_SEED)],
+    program.programId
+  );
+
 
 export const [playerState] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(PLAYER_STATE_SEED), secondUserProvider.wallet.publicKey.toBuffer()],
@@ -114,6 +120,11 @@ export const [assetCollectionMasterEdition] = anchor.web3.PublicKey.findProgramA
 
 export const [assetMint] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(ASSET_TEST_MINT_SEED), provider.wallet.publicKey.toBuffer()],
+    program.programId
+  );
+
+export const [freeAssetState] = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from(FREE_ASSETS_STATE_SEED), assetMint.toBuffer(), provider.wallet.publicKey.toBuffer()],
     program.programId
   );
 
