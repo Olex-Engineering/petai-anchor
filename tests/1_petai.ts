@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { expect } from "chai";
 import { provider, program, secondUserProvider,} from "./constants";
-import { statePda, tokenMint, petCollectionMint, assetCollectionMint } from "./pdas";
+import { statePda, petCollectionMint, assetCollectionMint, tokenMint, realDogsState } from "./pdas";
 
 describe("Initialization and state", () => {
   anchor.setProvider(provider);
@@ -14,6 +14,7 @@ describe("Initialization and state", () => {
       try {
         const tx = await program.methods.initialize().accounts({
           state: statePda,
+          realDogsState: realDogsState
         }).rpc();
       } catch(error) {
         console.log(error);
@@ -31,13 +32,18 @@ describe("Initialization and state", () => {
         authority: provider.wallet.publicKey,
         petCollection: petCollectionMint,
         assetCollection: assetCollectionMint,
+        tokenMint: tokenMint,
         decorCollection: anchor.web3.Keypair.generate().publicKey,
-        realDogsConfigs: [{
-          wallet: secondUserProvider.wallet.publicKey,
+      },
+      {
+        configs: [{
+          wallet: provider.wallet.publicKey,
           uri: 'http:test.ocm'
         }]
-      }).accounts({
-        state: statePda
+      }
+      ).accounts({
+        state: statePda,
+        realDogsState: realDogsState
       }).rpc();
   
       const state = await program.account.programState.fetch(statePda);

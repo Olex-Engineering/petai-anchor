@@ -4,6 +4,7 @@ import { Petai } from "../target/types/petai";
 import * as anchor from "@coral-xyz/anchor";
 
 export const PROGRAM_STATE_SEED = 'state';
+export const REAL_DOG_STATE_SEED = 'real-dogs-state';
 export const TOKEN_MINT_SEED = 'token-mint'
 export const PET_COLLECTION_MINT_SEED = 'pet-collection-mint-seed';
 export const ASSET_COLLECTION_MINT_SEED = 'asset-collection-mint-seed';

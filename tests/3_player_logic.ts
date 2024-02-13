@@ -1,7 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { MPL_TOKEN_METADATA_PROGRAM_ID, clockworkProvider, program, provider, secondUserProgram, secondUserProvider, threadId } from "./constants";
-import { petNFTMint, statePda, playerState, petCollectionMint, petCollectionMetadata, petCollectionMasterEdition, petMetadata, petMasterEdition, threadAddress, petState } from "./pdas";
+import { petNFTMint, statePda, playerState, petCollectionMint, petCollectionMetadata, petCollectionMasterEdition, petMetadata, petMasterEdition, threadAddress, petState, realDogsState } from "./pdas";
 import { print_thread } from "./utils";
 import { expect } from "chai";
 
@@ -21,15 +20,15 @@ describe("Player logic", () => {
         try {
           const tx = await secondUserProgram.methods.initPlayerState(
             [],
-            {
-              wallet: secondUserProvider.wallet.publicKey,
-              uri: 'http://test.com'
-            },
             Buffer.from(threadId),
+            {
+              wallet: provider.wallet.publicKey,
+            },
           )
           .accounts({
             state: statePda,
             playerState: playerState,
+            realDogsConfigState: realDogsState,
             petState: petState,
             petNftMint: petNFTMint,
             metadataAccount: petMetadata,

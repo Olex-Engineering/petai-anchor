@@ -18,12 +18,12 @@ pub mod petai {
         return instructions::initialize(ctx);
     }
 
-    pub fn update_program_state(ctx: Context<UpdateProgramState>, data: ProgramState) -> Result<()> {
-        return instructions::update_program_state(ctx, data);
+    pub fn update_program_state(ctx: Context<UpdateProgramState>, data: ProgramState, real_dogs_config: RealDogsConfigState) -> Result<()> {
+        return instructions::update_program_state(ctx, data, real_dogs_config);
     }
 
-    pub fn create_token(ctx: Context<CreateToken>, mint_seed: String, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
-        return instructions::create_token(ctx, mint_seed, amount, metadata_args);
+    pub fn create_token(ctx: Context<CreateToken>, mint_seed: String, decimals: Option<u8>, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
+        return instructions::create_token(ctx, mint_seed, decimals, amount, metadata_args);
     }
 
     pub fn update_token(ctx: Context<UpdateTokenMetadata>, metadata_args: MetatadataArgs) -> Result<()> {
@@ -37,14 +37,14 @@ pub mod petai {
     pub fn init_player_state(
         ctx: Context<InitPlayerState>,
         pet_states: Vec<Vec<String>>,
-        real_dog_config: RealDogConfig,
         thread_id: Vec<u8>,
+        real_dog_config: RealDogConfig,
     ) -> Result<()> {
         return instructions::init_player(
             ctx,
             pet_states,
-            real_dog_config,
             thread_id,
+            real_dog_config,
         );
     }
 
@@ -59,6 +59,10 @@ pub mod petai {
 
     pub fn use_asset(ctx: Context<UseAsset>, mint_seed: String, amount: u8) -> Result<()> {
         return instructions::use_asset(ctx, mint_seed, amount);
+    }
+
+    pub fn buy_asset(ctx: Context<BuyAsset>, amount: u32) -> Result<()> {
+        return instructions::buy_asset(ctx, amount);
     }
 
     // Decors

@@ -27,6 +27,9 @@ pub struct MintToken<'info> {
         bump=state.bump,
     )]
     pub state: Account<'info, ProgramState>,
+    #[account(
+        mut
+    )]
     pub mint: Account<'info, Mint>,
     #[account(
         init_if_needed,
@@ -34,7 +37,7 @@ pub struct MintToken<'info> {
         associated_token::mint = mint,
         associated_token::authority = initializer
     )]
-    ata_account: Account<'info, TokenAccount>,
+    pub ata_account: Account<'info, TokenAccount>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

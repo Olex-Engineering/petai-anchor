@@ -1,8 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
 import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 import { expect } from "chai";
-import { ASSET_COLLECTION_MINT_SEED, ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, PET_COLLECTION_MINT_SEED, PET_NFT_MINT_SEED, program, provider, secondUserProgram, secondUserProvider } from "./constants";
-import { petCollectionMint, statePda, petCollectionMetadata, petCollectionMasterEdition, petNFTMint, petMetadata, petMasterEdition, assetCollectionMint, assetMint, assetCollectionMetadata, assetCollectionMasterEdition, assetMetadata } from "./pdas";
+import { ASSET_COLLECTION_MINT_SEED, ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, PET_COLLECTION_MINT_SEED, PET_NFT_MINT_SEED, TOKEN_MINT_SEED, program, provider, secondUserProgram, secondUserProvider } from "./constants";
+import { petCollectionMint, statePda, petCollectionMetadata, petCollectionMasterEdition, petNFTMint, petMetadata, petMasterEdition, assetCollectionMint, assetMint, assetCollectionMetadata, assetCollectionMasterEdition, assetMetadata, tokenMint, tokenMetadata } from "./pdas";
 import { createNft } from "@metaplex-foundation/mpl-token-metadata";
 
 describe("Token logic", () => {
@@ -17,6 +17,7 @@ describe("Token logic", () => {
       try {
         await program.methods.createToken(
           PET_COLLECTION_MINT_SEED,
+          null,
           new anchor.BN(1),
           {
             name: 'Test collection',
@@ -131,6 +132,7 @@ describe("Token logic", () => {
     try {
       await secondUserProgram.methods.createToken(
         PET_NFT_MINT_SEED,
+        0,
         new anchor.BN(1),
         {
           name: 'Test collection',
@@ -188,6 +190,7 @@ describe("Token logic", () => {
     try {
       await program.methods.createToken(
         ASSET_COLLECTION_MINT_SEED,
+        null,
         new anchor.BN(1),
         {
           name: 'Asset collection',
@@ -244,6 +247,7 @@ describe("Token logic", () => {
     try {
       await program.methods.createToken(
         ASSET_TEST_MINT_SEED,
+        0,
         new anchor.BN(10),
         {
           name: 'Asset fungible',
@@ -258,7 +262,7 @@ describe("Token logic", () => {
             verified: false
           },
           collectionDetails: null,
-          decimals: 0,
+          decimals: null,
           printSupply: {
             zero: {}
           },
@@ -285,6 +289,61 @@ describe("Token logic", () => {
       const account = await getAccount(provider.connection, tokenAccount);
   
       expect(account.amount).to.equal(BigInt(10));
+    } catch (error) {
+      console.log(error);
+      expect(error).not.exist;
+    }
+    
+  });
+
+  it('Token can be created/minted', async () => {
+    const tokenAccount = await getAssociatedTokenAddress(
+      tokenMint,
+      secondUserProvider.wallet.publicKey
+    )
+
+    try {
+      await secondUserProgram.methods.createToken(
+        TOKEN_MINT_SEED,
+        2,
+        new anchor.BN(1000),
+        {
+          name: 'Custom token',
+          symbol: 'BBB',
+          uri: 'https://test.com',
+          tokenStandart: {
+            fungible: {}
+          },
+          primarySaleHappened: false,
+          collection: null,
+          collectionDetails: null,
+          decimals: 0,
+          printSupply: {
+            zero: {}
+          },
+          creators: [{
+              address: statePda,
+              verified: true,
+              share: 100
+          }]
+        },
+      )
+        .accounts({
+          state: statePda,
+          mint: tokenMint,
+          metadataAccount: tokenMetadata,
+          masterEdition: null,
+          metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
+          ataAccount: tokenAccount,
+          collectionMint: null,
+          collectionMetadata: null,
+          collectionMasterEdition: null
+        })
+        .rpc()
+  
+      const account = await getAccount(provider.connection, tokenAccount);
+  
+      expect(account.amount).to.equal(BigInt(100000));
     } catch (error) {
       console.log(error);
       expect(error).not.exist;

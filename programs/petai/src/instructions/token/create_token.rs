@@ -3,20 +3,7 @@ use anchor_spl::{token::{Mint, Token, TokenAccount, MintTo, mint_to}, metadata::
 
 use crate::{constants::{PROGRAM_STATE_SEED, SELLER_FEE}, states::program_state::ProgramState, models::MetatadataArgs};
 
-/// Creates a new token.
-///
-/// # Arguments
-///
-/// * `ctx` - The context in which this function is called.
-/// * `mint_seed` - Mint seed.
-/// * `collection_seed` - An optional seed for the collection.
-/// * `amount` - The amount of the token to mint.
-/// * `metadata_args` - The metadata arguments for the token.
-///
-/// # Returns
-///
-/// * `Result<()>` - Returns `Ok(())` if the token is successfully created, otherwise returns an error.
-pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
+pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, decimals: Option<u8>, amount: u64, metadata_args: MetatadataArgs) -> Result<()> {
     let metadata_program_info = &ctx.accounts.metadata_program.to_account_info();
     let metadata_info = &ctx.accounts.metadata_account.to_account_info();
     let mint_info = &ctx.accounts.mint.to_account_info();
@@ -58,8 +45,8 @@ pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, amount: u64, 
         }
     );
    
-
-    msg!(amount.to_string().as_str());
+    let amount_with_decimals = amount * 10u64.pow(decimals.unwrap_or(0) as u32);
+    
     mint_to(CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
         MintTo {
@@ -71,7 +58,7 @@ pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, amount: u64, 
             PROGRAM_STATE_SEED.as_bytes(),
             &[ctx.accounts.state.bump]
         ]]
-    ), amount)?;
+    ), amount_with_decimals)?;
 
 
     _cpi_create.invoke_signed(&[
@@ -115,20 +102,20 @@ pub fn create_token(ctx: Context<CreateToken>, _mint_seed: String, amount: u64, 
 }
 
 #[derive(Accounts)]
-#[instruction(mint_seed: String)]
+#[instruction(mint_seed: String, decimals: Option<u8>)]
 pub struct CreateToken<'info> {
     #[account(
         seeds=[PROGRAM_STATE_SEED.as_bytes()],
         bump=state.bump,
     )]
-    state: Account<'info, ProgramState>,
+    state: Box<Account<'info, ProgramState>>,
 
     #[account(
         init,
         seeds=[mint_seed.as_bytes(), initializer.key.as_ref()],
         bump,
         payer=initializer,
-        mint::decimals=0,
+        mint::decimals=decimals.unwrap_or(0),
         mint::authority=state,
         mint::freeze_authority=state
     )]

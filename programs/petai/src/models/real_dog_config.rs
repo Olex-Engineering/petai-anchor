@@ -7,6 +7,6 @@ pub struct RealDogConfig {
 
 impl RealDogConfig {
     pub fn get_size() -> usize {
-        return 32 + 4;
+        return 32;
     }
 }

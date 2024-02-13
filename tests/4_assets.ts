@@ -1,8 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
-import { getAssociatedTokenAddress, getAccount, createTransferInstruction, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
+import { getAssociatedTokenAddress, getAccount, createTransferInstruction, createAssociatedTokenAccountInstruction, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 import { expect } from "chai";
 import { ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, program, provider, secondUserProgram, secondUserProvider } from "./constants";
-import { statePda, assetMint, assetState, assetMetadata, playerState, petState } from "./pdas";
+import { statePda, assetMint, assetState, assetMetadata, playerState, petState, tokenMint } from "./pdas";
 
 describe("Assets logic", () => {
   anchor.setProvider(provider);
@@ -12,7 +12,6 @@ describe("Assets logic", () => {
         assetMint,
         provider.wallet.publicKey
       )
-
 
       await program.methods.putAsset(
         {
@@ -98,5 +97,97 @@ describe("Assets logic", () => {
       
       expect(petStateAccount.condition).to.deep.eq({ super: {} });
       expect(account.amount).to.equal(BigInt(8));
+    });
+
+    it('Can buy asset', async () => {
+      const playerAccount = await program.account.playerState.fetch(playerState);
+
+      const signerAssetAccount = await getAssociatedTokenAddress(
+        assetMint,
+        secondUserProvider.wallet.publicKey
+      );
+
+      const signerTokenAccount = await getAssociatedTokenAddress(
+        tokenMint,
+        secondUserProvider.wallet.publicKey
+      );
+
+      const treasuryTokenAccount = await getAssociatedTokenAddress(
+        tokenMint,
+        statePda,
+        true
+      );
+
+      const realDogTreasureTokenAccount = await getAssociatedTokenAddress(
+        tokenMint,
+        playerAccount.realDogTreasury
+      );
+
+      const createTokenAccountsInstructions = [];
+
+      
+      try {
+        const account = await getAccount(provider.connection, signerAssetAccount);
+        expect(account.amount).to.equal(BigInt(8));
+      } catch {
+        createTokenAccountsInstructions.push(
+          createAssociatedTokenAccountInstruction(
+            secondUserProvider.wallet.publicKey,
+            signerAssetAccount,
+            secondUserProvider.wallet.publicKey,
+            assetMint
+          )
+        )
+      }
+
+      try {
+        const account = await getAccount(provider.connection, treasuryTokenAccount);
+      } catch {
+        createTokenAccountsInstructions.push(
+          createAssociatedTokenAccountInstruction(
+            secondUserProvider.wallet.publicKey,
+            treasuryTokenAccount,
+            statePda,
+            tokenMint
+          )
+        )
+      }
+
+      try {
+        const account = await getAccount(provider.connection, realDogTreasureTokenAccount);
+      } catch {
+        createTokenAccountsInstructions.push(
+          createAssociatedTokenAccountInstruction(
+            secondUserProvider.wallet.publicKey,
+            realDogTreasureTokenAccount,
+            playerAccount.realDogTreasury,
+            tokenMint
+          )
+        )
+      }
+
+      try {
+        await secondUserProgram.methods.buyAsset(2)
+        .accounts({
+          state: statePda,
+          assetState: assetState,
+          playerState: playerState,
+          assetMint: assetMint,
+          tokenMint: tokenMint,
+          signerTokenAccount: signerTokenAccount,
+          signerAssetAccount: signerAssetAccount,
+          treasuryTokenAccount: treasuryTokenAccount,
+          realDogTokenAccount: realDogTreasureTokenAccount,
+          realDogTreasury: provider.wallet.publicKey,
+        })
+        .preInstructions(createTokenAccountsInstructions)
+        .rpc()
+      } catch (error) {
+        console.log(error);
+      }
+      
+      const account = await getAccount(provider.connection, signerAssetAccount);
+      
+      expect(account.amount).to.equal(BigInt(10));
     });
 });
