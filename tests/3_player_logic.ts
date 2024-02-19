@@ -3,6 +3,7 @@ import { MPL_TOKEN_METADATA_PROGRAM_ID, clockworkProvider, program, provider, se
 import { petNFTMint, statePda, playerState, petCollectionMint, petCollectionMetadata, petCollectionMasterEdition, petMetadata, petMasterEdition, threadAddress, petState, realDogsState } from "./pdas";
 import { print_thread } from "./utils";
 import { expect } from "chai";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 describe("Player logic", () => {
     anchor.setProvider(provider);
@@ -16,6 +17,8 @@ describe("Player logic", () => {
             lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
             signature: airddropTx
         });
+
+        const tokenAccount = getAssociatedTokenAddressSync(petNFTMint, secondUserProvider.wallet.publicKey);
     
         try {
           const tx = await secondUserProgram.methods.initPlayerState(
@@ -29,6 +32,7 @@ describe("Player logic", () => {
             realDogsConfigState: realDogsState,
             petState: petState,
             petNftMint: petNFTMint,
+            petNftMintAta: tokenAccount,
             metadataAccount: petMetadata,
             metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
             clockworkProgram: clockworkProvider.threadProgram.programId,

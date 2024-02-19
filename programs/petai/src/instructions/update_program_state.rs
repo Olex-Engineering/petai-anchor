@@ -32,7 +32,7 @@ pub struct UpdateProgramState<'info> {
         seeds=[REAL_DOGS_STATE_SEED.as_bytes()],
         bump=real_dogs_state.bump,
         realloc=RealDogsWalletState::get_size(real_dogs.as_ref()),
-        realloc::payer=signer,
+        realloc::payer=initializer,
         realloc::zero=true,
     )]
     pub real_dogs_state: Account<'info, RealDogsWalletState>,
@@ -40,6 +40,6 @@ pub struct UpdateProgramState<'info> {
         mut,
         address=state.authority
     )]
-    signer: Signer<'info>,
+    initializer: Signer<'info>,
     system_program: Program<'info, System>
 }

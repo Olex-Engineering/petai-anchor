@@ -1,9 +1,9 @@
 use anchor_lang::{prelude::*, solana_program::{entrypoint::ProgramResult, instruction::Instruction, native_token::LAMPORTS_PER_SOL}, InstructionData};
-use anchor_spl::{token::Mint, metadata::{Metadata as MetadataProgram, MetadataAccount}};
+use anchor_spl::{metadata::{Metadata as MetadataProgram, MetadataAccount}, token::{Mint, TokenAccount}};
 use mpl_token_metadata::accounts::Metadata;
 
 
-use crate::{constants::{PET_NFT_MINT_SEED, PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PLAYER_STATE_SEED, PROGRAM_STATE_SEED, REAL_DOGS_STATE_SEED}, errors::PetaiErrorCode, states::{player_state::PlayerState, program_state::ProgramState}, PetState, RealDogsWalletState, ID};
+use crate::{constants::{PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PLAYER_STATE_SEED, PROGRAM_STATE_SEED, REAL_DOGS_STATE_SEED}, errors::PetaiErrorCode, states::{player_state::PlayerState, program_state::ProgramState}, PetState, RealDogsWalletState, ID};
 
 use clockwork_sdk::state::Thread;
 
@@ -13,7 +13,6 @@ pub fn init_player(
     thread_id: Vec<u8>,
     real_dog_wallet: Pubkey,
 ) -> Result<()> {
-    msg!("Start init player");
     let is_real_dog_valid = ctx.accounts.real_dogs_config_state.wallets.iter()
         .find(|valid_wallet| Pubkey::eq(&valid_wallet, &real_dog_wallet));
 
@@ -22,18 +21,18 @@ pub fn init_player(
             && collection.key.eq(&ctx.accounts.state.pet_collection)),
         PetaiErrorCode::InvalidDogNft
     );
-
     require!(is_real_dog_valid.is_some(), PetaiErrorCode::RealDogValidationError);
+    require!(ctx.accounts.pet_nft_mint_ata.amount == 1, PetaiErrorCode::InvalidPetNftAta);
 
     // Set player and pet state
     let mut player_state: PlayerState = PlayerState::default();
     let mut pet_state: PetState = PetState::default();
 
-    pet_state.current_pet_nft = ctx.accounts.pet_nft_mint.key();
+    pet_state.pet_states = pet_states;
     pet_state.bump = ctx.bumps.pet_state;
 
+    player_state.current_pet_nft = ctx.accounts.pet_nft_mint.key();
     player_state.real_dog_treasury = real_dog_wallet;
-    player_state.pet_states = pet_states;
     player_state.bump = ctx.bumps.player_state;
     
     ctx.accounts.player_state.set_inner(player_state);
@@ -53,12 +52,13 @@ fn start_cron_tread(ctx: &Context<InitPlayerState>, thread_id: &Vec<u8>) -> Prog
             pet_state: ctx.accounts.pet_state.key(),
             state: ctx.accounts.state.key(),
             thread: ctx.accounts.thread.key(),
+            pet_nft_mint: ctx.accounts.pet_nft_mint.key(),
             metadata_program: ctx.accounts.metadata_program.key(),
             system_program: ctx.accounts.system_program.key(),
         }
         .to_account_metas(Some(true)),
         data: crate::instruction::UpdatePetStateCron {
-            player_id: ctx.accounts.signer.key()
+            player_id: ctx.accounts.initializer.key()
         }.data(),
     };
 
@@ -71,7 +71,7 @@ fn start_cron_tread(ctx: &Context<InitPlayerState>, thread_id: &Vec<u8>) -> Prog
         CpiContext::new_with_signer(
             ctx.accounts.clockwork_program.to_account_info(),
             clockwork_sdk::cpi::ThreadCreate {
-                payer: ctx.accounts.signer.to_account_info(),
+                payer: ctx.accounts.initializer.to_account_info(),
                 system_program: ctx.accounts.system_program.to_account_info(),
                 thread: ctx.accounts.thread.to_account_info(),
                 authority: ctx.accounts.state.to_account_info(),
@@ -96,18 +96,18 @@ pub struct InitPlayerState<'info> {
     // states (pda's)
     #[account(
         init,
-        seeds=[PLAYER_STATE_SEED.as_bytes(), signer.key.as_ref()],
+        seeds=[PLAYER_STATE_SEED.as_bytes(), initializer.key.as_ref()],
         bump,
-        payer = signer,
-        space = PlayerState::get_size(pet_states, None)
+        payer = initializer,
+        space = PlayerState::get_size(None)
     )]
     pub player_state: Account<'info, PlayerState>,
     #[account(
         init,
-        seeds=[PET_STATE_SEED.as_bytes(), player_state.key().as_ref()],
+        seeds=[PET_STATE_SEED.as_bytes(), pet_nft_mint.key().as_ref()],
         bump,
-        payer = signer,
-        space = PetState::get_size()
+        payer = initializer,
+        space = PetState::get_size(&pet_states, &thread_id)
     )]
     pub pet_state: Account<'info, PetState>,
     #[account(
@@ -125,11 +125,12 @@ pub struct InitPlayerState<'info> {
     pub real_dogs_config_state: Account<'info, RealDogsWalletState>,
 
     // Pet nft accounts
-    #[account(
-        seeds=[PET_NFT_MINT_SEED.as_bytes(), signer.key.as_ref()],
-        bump,
-    )]
     pub pet_nft_mint: Account<'info, Mint>,
+    #[account(
+        associated_token::mint = pet_nft_mint,
+        associated_token::authority = initializer
+    )]
+    pub pet_nft_mint_ata: Account<'info, TokenAccount>,
     /// CHECK: manual verify address
     #[account(
         mut,
@@ -139,7 +140,7 @@ pub struct InitPlayerState<'info> {
 
     // Signer
     #[account(mut)]
-    pub signer: Signer<'info>,
+    pub initializer: Signer<'info>,
 
     // Programs
     /// Address to assign to the newly created thread.

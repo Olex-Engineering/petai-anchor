@@ -20,7 +20,7 @@ pub struct PutDecor<'info> {
         init_if_needed,
         seeds=[DECOR_STATE_SEED.as_bytes(), asset_args.mint.as_ref()],
         bump,
-        payer = signer,
+        payer = initializer,
         space = DecorState::get_size()
     )]
     pub decor_state: Account<'info, DecorState>,
@@ -36,7 +36,7 @@ pub struct PutDecor<'info> {
         mut,
         address=state.authority.key()
     )]
-    pub signer: Signer<'info>,
+    pub initializer: Signer<'info>,
 
     // Programs
     pub system_program: Program<'info, System>,

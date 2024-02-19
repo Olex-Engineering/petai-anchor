@@ -2,14 +2,14 @@ use anchor_lang::{prelude::*, solana_program};
 use anchor_spl::token::{burn, Burn, Mint, Token, TokenAccount};
 use mpl_token_metadata::accounts::Metadata;
 
-use crate::{constants::{ASSET_STATE_SEED, PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, AssetState, PetState, PetStateUpdates, PlayerState, ProgramState};
+use crate::{constants::{ASSET_STATE_SEED, PROGRAM_STATE_SEED}, AssetState, PetState, PetStateUpdates, ProgramState};
 
 pub fn use_asset(ctx: Context<UseAsset>, _: String, amount: u8) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let burn_cpi_accounts = Burn {
         mint: ctx.accounts.asset_mint.to_account_info(),
         from: ctx.accounts.ata_account.to_account_info(),
-        authority: ctx.accounts.signer.to_account_info()
+        authority: ctx.accounts.initializer.to_account_info()
     };
 
     burn(
@@ -43,16 +43,7 @@ pub struct UseAsset<'info> {
     pub state: Account<'info, ProgramState>,
 
     #[account(
-        mut,
-        seeds=[PLAYER_STATE_SEED.as_bytes(), signer.key.as_ref()],
-        bump=player_state.bump
-    )]
-    pub player_state: Account<'info, PlayerState>,
-
-    #[account(
-        mut,
-        seeds=[PET_STATE_SEED.as_bytes(), player_state.key().as_ref()],
-        bump=pet_state.bump
+        mut
     )]
     pub pet_state: Account<'info, PetState>,
 
@@ -80,12 +71,12 @@ pub struct UseAsset<'info> {
     #[account(
         mut,
         associated_token::mint = asset_mint,
-        associated_token::authority = signer
+        associated_token::authority = initializer
     )]
     pub ata_account: Account<'info, TokenAccount>,
 
     #[account(mut)]
-    pub signer: Signer<'info>,
+    pub initializer: Signer<'info>,
 
     // Programs
     pub token_program: Program<'info, Token>,

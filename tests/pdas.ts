@@ -22,10 +22,6 @@ export const [playerState] = anchor.web3.PublicKey.findProgramAddressSync(
     program.programId
   )
 
-export const [petState] = anchor.web3.PublicKey.findProgramAddressSync(
-  [Buffer.from(PET_STATE_SEED), playerState.toBuffer()],
-  program.programId
-)
 
 export const [tokenMint] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(TOKEN_MINT_SEED), secondUserProvider.wallet.publicKey.toBuffer()],
@@ -70,6 +66,11 @@ export const [petNFTMint] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(PET_NFT_MINT_SEED), secondUserProvider.wallet.publicKey.toBuffer()],
     program.programId
   );
+
+export const [petState] = anchor.web3.PublicKey.findProgramAddressSync(
+  [Buffer.from(PET_STATE_SEED), petNFTMint.toBuffer()],
+  program.programId
+);
 
 export const [petMetadata] = anchor.web3.PublicKey.findProgramAddressSync(
     [

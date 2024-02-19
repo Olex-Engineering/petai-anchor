@@ -52,6 +52,14 @@ pub mod petai {
         return instructions::update_player_state_cron(ctx, player_id);
     }
 
+    pub fn update_player_state(ctx: Context<UpdatePlayer>, update_args: UpdatePlayerArgs) -> Result<()> {
+        return instructions::update_player(ctx, update_args);
+    }
+
+    pub fn update_pet_nft(ctx: Context<UpdatePetNft>, update_args: UpdatePetNftArgs) -> Result<()> {
+        return instructions::update_pet_nft(ctx, update_args);
+    }
+
     // Assets
     pub fn put_asset(ctx: Context<PutAsset>, asset_args: AssetArgs) -> Result<()> {
         return instructions::put_asset(ctx, asset_args);

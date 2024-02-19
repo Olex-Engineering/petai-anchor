@@ -76,7 +76,6 @@ describe("Assets logic", () => {
     try {
       await secondUserProgram.methods.useAsset(ASSET_TEST_MINT_SEED, 2)
       .accounts({
-        playerState: playerState,
         petState: petState,
         assetState: assetState,
         state: statePda,

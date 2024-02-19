@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 #[account]
 pub struct PetState {
-    pub current_pet_nft: Pubkey, // 32
+    pub pet_states: Vec<Vec<String>>, // 8 + items
     pub condition: PetCondition, // 1
     pub age: PetAge, // 1
     pub loneliness: u8, // 1
@@ -11,13 +11,13 @@ pub struct PetState {
     pub updates_number: u32, // 4
     pub updated_at: i64, // 8
     pub is_died: bool, // 1
+    pub thread_id: Vec<u8>, // 4
     pub bump: u8 // 1
 }
 
 impl Default for PetState {
     fn default() -> Self {
         return PetState {
-            current_pet_nft: Pubkey::default(),
             condition: PetCondition::Super,
             age: PetAge::Kid,
             loneliness: 100,
@@ -26,14 +26,26 @@ impl Default for PetState {
             updates_number: 0,
             updated_at: Clock::get().unwrap().unix_timestamp,
             is_died: false,
+            pet_states: vec![vec![]],
+            thread_id: vec![],
             bump: 0,
         }
     }
 }
 
 impl PetState {
-    pub fn get_size() -> usize {
-        return 8 + 32 + 1 + 1 + 1 + 1 + 1 + 4 + 8 + 1 + 1;
+    pub fn get_size(pet_states: &Vec<Vec<String>>, thread_id: &Vec<u8>) -> usize {
+        let mut size = 8 + 8 + 1 + 1 + 1 + 1 + 1 + 4 + 8 + 1 + 4 + 1;
+
+        for age in pet_states.iter() {
+            for condition in age {
+                size += 4 + condition.len();
+            }
+        }
+
+        size += thread_id.len();
+
+        return size;
     }
 
     pub fn incease_pet_state_params(&mut self, updates: PetStateUpdates) {

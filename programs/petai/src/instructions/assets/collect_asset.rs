@@ -48,17 +48,17 @@ pub struct CollectFreeAssets<'info> {
     // TODO: add independent instruction for init
     #[account(
         init_if_needed,
-        seeds=[FREE_ASSETS_STATE_SEED.as_bytes(), asset_mint.key().as_ref(), signer.key().as_ref()],
+        seeds=[FREE_ASSETS_STATE_SEED.as_bytes(), asset_mint.key().as_ref(), initializer.key().as_ref()],
         bump,
-        payer = signer,
+        payer = initializer,
         space = CollectableAssetState::get_size()
     )]
     pub free_asset_state: Account<'info, CollectableAssetState>,
     #[account(
         init_if_needed,
-        payer=signer,
+        payer=initializer,
         associated_token::mint = asset_mint,
-        associated_token::authority = signer,
+        associated_token::authority = initializer,
     )]
     pub ata_account: Account<'info, TokenAccount>,
     #[account(mut)]
@@ -67,5 +67,5 @@ pub struct CollectFreeAssets<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
     #[account(mut)]
-    pub signer: Signer<'info>,
+    pub initializer: Signer<'info>,
 }
