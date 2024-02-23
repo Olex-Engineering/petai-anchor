@@ -1,8 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
-import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+import { getAssociatedTokenAddress, getAccount, getOrCreateAssociatedTokenAccount, createAssociatedTokenAccountInstruction, createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { expect } from "chai";
 import { ASSET_COLLECTION_MINT_SEED, ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, PET_COLLECTION_MINT_SEED, PET_NFT_MINT_SEED, TOKEN_MINT_SEED, program, provider, secondUserProgram, secondUserProvider } from "./constants";
-import { petCollectionMint, statePda, petCollectionMetadata, petCollectionMasterEdition, petNFTMint, petMetadata, petMasterEdition, assetCollectionMint, assetMint, assetCollectionMetadata, assetCollectionMasterEdition, assetMetadata, tokenMint, tokenMetadata } from "./pdas";
+import { petCollectionMint, statePda, petCollectionMetadata, petCollectionMasterEdition, assetCollectionMint, assetMint, assetCollectionMetadata, assetCollectionMasterEdition, assetMetadata, tokenMint, tokenMetadata, getPetNftMint, getPetMatadata, getPetMasterEdition } from "./pdas";
 import { createNft } from "@metaplex-foundation/mpl-token-metadata";
 
 describe("Token logic", () => {
@@ -124,12 +124,68 @@ describe("Token logic", () => {
         signature: airddropTx
     });
 
-    const tokenAccount = await getAssociatedTokenAddress(
-      petNFTMint,
+    const [firstUserPetNftMint] = getPetNftMint(provider.wallet.publicKey);
+    const [secondUserPetNftMint] = getPetNftMint(secondUserProvider.wallet.publicKey);
+
+    const firstUserTokenAccount = getAssociatedTokenAddressSync(
+      firstUserPetNftMint,
+      provider.wallet.publicKey
+    );
+
+    const secondUserTokenAccount = getAssociatedTokenAddressSync(
+      secondUserPetNftMint,
+      secondUserProvider.wallet.publicKey
+    );
+
+    const secondUserTokenAccountWithFirstUserNft = getAssociatedTokenAddressSync(
+      firstUserPetNftMint,
       secondUserProvider.wallet.publicKey
     )
 
     try {
+      await program.methods.createToken(
+        PET_NFT_MINT_SEED,
+        0,
+        new anchor.BN(1),
+        {
+          name: 'Test collection',
+          symbol: 'TTT',
+          uri: 'https://test.com',
+          tokenStandart: {
+            nonFungible: {}
+          },
+          primarySaleHappened: false,
+          collection: {
+            key: petCollectionMint,
+            verified: false
+          },
+          collectionDetails: null,
+          decimals: null,
+          printSupply: {
+            zero: {}
+          },
+          creators: [{
+              address: statePda,
+              verified: true,
+              share: 100
+          }]
+        },
+      )
+        .accounts({
+          state: statePda,
+          mint: firstUserPetNftMint,
+          metadataAccount: getPetMatadata(firstUserPetNftMint)[0],
+          masterEdition: getPetMasterEdition(firstUserPetNftMint)[0],
+          metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
+          ataAccount: firstUserTokenAccount,
+          collectionMint: petCollectionMint,
+          collectionMetadata: petCollectionMetadata,
+          collectionMasterEdition: petCollectionMasterEdition
+        })
+        .preInstructions([anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })])
+        .rpc()
+
+
       await secondUserProgram.methods.createToken(
         PET_NFT_MINT_SEED,
         0,
@@ -160,11 +216,11 @@ describe("Token logic", () => {
       )
         .accounts({
           state: statePda,
-          mint: petNFTMint,
-          metadataAccount: petMetadata,
-          masterEdition: petMasterEdition,
+          mint: secondUserPetNftMint,
+          metadataAccount: getPetMatadata(secondUserPetNftMint)[0],
+          masterEdition: getPetMasterEdition(secondUserPetNftMint)[0],
           metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
-          ataAccount: tokenAccount,
+          ataAccount: secondUserTokenAccount,
           collectionMint: petCollectionMint,
           collectionMetadata: petCollectionMetadata,
           collectionMasterEdition: petCollectionMasterEdition
@@ -172,9 +228,29 @@ describe("Token logic", () => {
         .preInstructions([anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })])
         .rpc()
   
-      const account = await getAccount(provider.connection, tokenAccount);
+      const firstUserAccount = await getAccount(provider.connection, firstUserTokenAccount);
+      const secondUserAccount = await getAccount(provider.connection, secondUserTokenAccount);
   
-      expect(account.amount).to.equal(BigInt(1));
+      expect(firstUserAccount.amount).to.equal(BigInt(1));
+      expect(secondUserAccount.amount).to.equal(BigInt(1));
+
+      // Transfer assets to second user
+      const transferTransaction = new anchor.web3.Transaction().add(
+        createAssociatedTokenAccountInstruction(
+          provider.wallet.publicKey,
+          secondUserTokenAccountWithFirstUserNft,
+          secondUserProvider.wallet.publicKey,
+          firstUserPetNftMint
+        ),
+        createTransferInstruction(
+          firstUserTokenAccount,
+          secondUserTokenAccountWithFirstUserNft,
+          provider.wallet.publicKey,
+          1,
+        )
+      )
+
+      await provider.sendAndConfirm(transferTransaction);
     } catch (error) {
       console.log(error);
       expect(error).not.exist;

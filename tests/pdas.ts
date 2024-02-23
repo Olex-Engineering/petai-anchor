@@ -62,36 +62,56 @@ export const [petCollectionMasterEdition] = anchor.web3.PublicKey.findProgramAdd
     MPL_TOKEN_METADATA_PROGRAM_ID
   );
 
-export const [petNFTMint] = anchor.web3.PublicKey.findProgramAddressSync(
-    [Buffer.from(PET_NFT_MINT_SEED), secondUserProvider.wallet.publicKey.toBuffer()],
+export const getPetNftMint = (userKey: anchor.web3.PublicKey) => {
+  return anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from(PET_NFT_MINT_SEED), userKey.toBuffer()],
     program.programId
   );
+}
 
-export const [petState] = anchor.web3.PublicKey.findProgramAddressSync(
-  [Buffer.from(PET_STATE_SEED), petNFTMint.toBuffer()],
-  program.programId
-);
+export const getPetState = (petNftMint: anchor.web3.PublicKey) => {
+  return anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from(PET_STATE_SEED), petNftMint.toBuffer()],
+    program.programId
+  );
+}
 
-export const [petMetadata] = anchor.web3.PublicKey.findProgramAddressSync(
+export const getPetMatadata = (petNftMint: anchor.web3.PublicKey) => {
+  return anchor.web3.PublicKey.findProgramAddressSync(
     [
       Buffer.from('metadata'),
       MPL_TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-      petNFTMint.toBuffer()
+      petNftMint.toBuffer()
     ],
     MPL_TOKEN_METADATA_PROGRAM_ID
   )
+}
 
-export const [petMasterEdition] = anchor.web3.PublicKey.findProgramAddressSync(
+export const getPetMasterEdition = (petNftMint: anchor.web3.PublicKey) => {
+  return anchor.web3.PublicKey.findProgramAddressSync(
     [
       Buffer.from('metadata'),
       MPL_TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-      petNFTMint.toBuffer(),
+      petNftMint.toBuffer(),
       Buffer.from('edition')
     ],
     MPL_TOKEN_METADATA_PROGRAM_ID
-  );
+  )
+}
+
 
 export const [threadAddress, threadBump] = clockworkProvider.getThreadPDA(statePda, threadId);
+
+export const getThreadAddressById = (id: string) => clockworkProvider.getThreadPDA(statePda, id);
+export const getRandomTreadIdWithAddress = () => {
+  const id = "counter-" + new Date().getTime() / 1000;
+
+  return {
+    id: id,
+    threadAddress: clockworkProvider.getThreadPDA(statePda, id)
+  }
+}
+
 
 // Asset pda's
 // Pet pda's

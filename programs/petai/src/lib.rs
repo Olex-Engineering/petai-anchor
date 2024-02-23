@@ -36,28 +36,36 @@ pub mod petai {
 
     pub fn init_player_state(
         ctx: Context<InitPlayerState>,
-        pet_states: Vec<Vec<String>>,
-        thread_id: Vec<u8>,
         real_dog_wallet: Pubkey,
     ) -> Result<()> {
         return instructions::init_player(
             ctx,
-            pet_states,
-            thread_id,
             real_dog_wallet,
         );
     }
 
+    pub fn init_pet(
+        ctx: Context<InitPet>,
+        pet_states: Vec<Vec<String>>,
+        thread_id: Vec<u8>,
+    ) -> Result<()> {
+        return instructions::init_pet(
+            ctx,
+            pet_states,
+            thread_id
+        );
+    }
+
     pub fn update_pet_state_cron(ctx: Context<UpdatePetStateCron>, player_id: Pubkey) -> Result<()> {
-        return instructions::update_player_state_cron(ctx, player_id);
+        return instructions::update_pet_state_cron(ctx, player_id);
     }
 
     pub fn update_player_state(ctx: Context<UpdatePlayer>, update_args: UpdatePlayerArgs) -> Result<()> {
         return instructions::update_player(ctx, update_args);
     }
 
-    pub fn update_pet_nft(ctx: Context<UpdatePetNft>, update_args: UpdatePetNftArgs) -> Result<()> {
-        return instructions::update_pet_nft(ctx, update_args);
+    pub fn update_player_pet(ctx: Context<UpdatePlayerPet>) -> Result<()> {
+        return instructions::update_player_pet(ctx);
     }
 
     // Assets

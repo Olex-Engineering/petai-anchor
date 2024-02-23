@@ -5,7 +5,7 @@ use crate::{constants::{PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, 
 
 use clockwork_sdk::state::Thread;
 
-pub fn update_player_state_cron(ctx: Context<UpdatePetStateCron>, _: Pubkey) -> Result<()> {
+pub fn update_pet_state_cron(ctx: Context<UpdatePetStateCron>, _: Pubkey) -> Result<()> {
     let pet = &mut ctx.accounts.pet_state;
 
     // Decrease pet state parameters

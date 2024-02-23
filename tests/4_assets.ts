@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { getAssociatedTokenAddress, getAccount, createTransferInstruction, createAssociatedTokenAccountInstruction, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 import { expect } from "chai";
 import { ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, program, provider, secondUserProgram, secondUserProvider } from "./constants";
-import { statePda, assetMint, assetState, assetMetadata, playerState, petState, tokenMint, freeAssetState } from "./pdas";
+import { statePda, assetMint, assetState, assetMetadata, playerState, tokenMint, freeAssetState, getPetNftMint, getPetState } from "./pdas";
 
 describe("Assets logic", () => {
   anchor.setProvider(provider);
@@ -72,11 +72,13 @@ describe("Assets logic", () => {
     let account = await getAccount(provider.connection, secondTokenAccount);
     expect(account.amount).to.equal(BigInt(10));
 
+    const [petNftMint] = getPetNftMint(secondUserProvider.wallet.publicKey);
+
     // Second user use 2 assets
     try {
       await secondUserProgram.methods.useAsset(ASSET_TEST_MINT_SEED, 2)
       .accounts({
-        petState: petState,
+        petState: getPetState(petNftMint)[0],
         assetState: assetState,
         state: statePda,
         assetMint: assetMint,
@@ -91,7 +93,7 @@ describe("Assets logic", () => {
     }
     
 
-    const petStateAccount = await program.account.petState.fetch(petState);
+    const petStateAccount = await program.account.petState.fetch(getPetState(petNftMint)[0]);
 
     account = await getAccount(provider.connection, secondTokenAccount);
     
