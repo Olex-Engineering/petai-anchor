@@ -4,10 +4,10 @@ use anchor_spl::{metadata::{Metadata as MetadataProgram, MetadataAccount}, token
 use clockwork_sdk::state::Thread;
 use mpl_token_metadata::accounts::Metadata;
 
-use crate::{constants::{PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, errors::PetaiErrorCode, start_pet_update_cron_tread, PetState, PlayerState, ProgramState, StartPetUpdateCronThreadAccounts};
+use crate::{constants::{PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, errors::PetaiErrorCode, start_pet_update_cron_tread, EffectState, PetState, PlayerState, ProgramState, StartPetUpdateCronThreadAccounts};
 
-pub fn init_pet(
-    ctx: Context<InitPet>,
+pub fn init_pet<'info>(
+    ctx: Context<'_, '_, 'info, 'info, InitPet<'info>>,
     pet_states: Vec<Vec<String>>,
     thread_id: Vec<u8>,
 ) -> Result<()> {
@@ -27,8 +27,20 @@ pub fn init_pet(
     ctx.accounts.pet_state.set_inner(pet_state);
     ctx.accounts.player_state.current_pet = Some(ctx.accounts.pet_state.key());
 
+    let effects_for_update_pet_cron: Vec<AccountMeta> = ctx.remaining_accounts.iter().filter_map(|x: & AccountInfo| {
+        let effect = Account::<EffectState>::try_from(x);
+        
+        if effect.is_ok() && x.owner == &crate::ID {
+            return Some(AccountMeta::new(effect.unwrap().key(), false));
+        } else {
+            return None;
+        }
+    }).collect();
+    
+    msg!(&effects_for_update_pet_cron.len().to_string());
+
     start_pet_update_cron_tread(
-        StartPetUpdateCronThreadAccounts {
+        &mut StartPetUpdateCronThreadAccounts {
             player_state: ctx.accounts.player_state.clone(),
             pet_state: ctx.accounts.pet_state.clone(),
             state: ctx.accounts.state.clone(),
@@ -39,6 +51,7 @@ pub fn init_pet(
             metadata_account: ctx.accounts.metadata_account.clone(),
             initializer: ctx.accounts.initializer.clone(),
             clockwork_program: ctx.accounts.clockwork_program.clone(),
+            effects_metas: effects_for_update_pet_cron
         },
         &thread_id
     )?;

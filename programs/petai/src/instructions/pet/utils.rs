@@ -16,23 +16,28 @@ pub struct StartPetUpdateCronThreadAccounts<'info> {
     pub clockwork_program: Program<'info, clockwork_sdk::ThreadProgram>,
     pub metadata_program: Program<'info, MetadataProgram>,
     pub system_program: Program<'info, System>,
+    pub effects_metas: Vec<AccountMeta>
 }
 
 
 #[inline(never)]
-pub fn start_pet_update_cron_tread(accounts: StartPetUpdateCronThreadAccounts, thread_id: &Vec<u8>) -> ProgramResult {
+pub fn start_pet_update_cron_tread(accounts: &mut StartPetUpdateCronThreadAccounts, thread_id: &Vec<u8>) -> ProgramResult {
+    let mut accounts_metas = crate::accounts::UpdatePetStateCron {
+        player_state: accounts.player_state.key(),
+        pet_state: accounts.pet_state.key(),
+        state: accounts.state.key(),
+        thread: accounts.thread.key(),
+        pet_nft_mint: accounts.pet_nft_mint.key(),
+        metadata_program: accounts.metadata_program.key(),
+        system_program: accounts.system_program.key(),
+    }
+    .to_account_metas(Some(true));
+
+    accounts_metas.append(&mut accounts.effects_metas);
+
     let target_ix = Instruction {
         program_id: ID,
-        accounts: crate::accounts::UpdatePetStateCron {
-            player_state: accounts.player_state.key(),
-            pet_state: accounts.pet_state.key(),
-            state: accounts.state.key(),
-            thread: accounts.thread.key(),
-            pet_nft_mint: accounts.pet_nft_mint.key(),
-            metadata_program: accounts.metadata_program.key(),
-            system_program: accounts.system_program.key(),
-        }
-        .to_account_metas(Some(true)),
+        accounts: accounts_metas,
         data: crate::instruction::UpdatePetStateCron {
             player_id: accounts.initializer.key()
         }.data(),

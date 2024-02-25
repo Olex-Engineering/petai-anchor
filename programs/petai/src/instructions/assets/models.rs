@@ -8,5 +8,7 @@ pub struct AssetArgs {
     pub increase_love: u8,
     pub price: u64,
     pub is_can_be_collected: bool,
-    pub collectable_time_diff: Option<i64>
+    pub collectable_time_diff: Option<i64>,
+    pub remove_effect: Option<Pubkey>,
+    pub add_effect: Option<Pubkey>
 }

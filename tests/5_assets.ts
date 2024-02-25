@@ -21,7 +21,9 @@ describe("Assets logic", () => {
         increaseLove: 0,
         price: new anchor.BN(10),
         isCanBeCollected: true,
-        collectableTimeDiff: new anchor.BN(5)
+        collectableTimeDiff: new anchor.BN(5),
+        removeEffect: null,
+        addEffect: null
       })
     .accounts({
       assetState: assetState,

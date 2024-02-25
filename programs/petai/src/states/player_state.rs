@@ -1,13 +1,13 @@
 use anchor_lang::prelude::*;
 
-use crate::GameEffect;
+use crate::GameEffectInAction;
 
 #[account]
 #[derive(Default)]
 pub struct PlayerState {
     // current pet state
     pub current_pet: Option<Pubkey>, // 32
-    pub current_effects: Vec<GameEffect>, // 4 + items
+    pub current_effects: Vec<GameEffectInAction>, // 4 + items
     pub real_dog_treasury: Pubkey, // 32
     pub decors: Vec<Pubkey>, // 4 + items
     pub bump: u8, // 1
@@ -19,7 +19,7 @@ impl PlayerState {
     ) -> usize {
         let mut size = 8 + 1 + 32 + 4 + 32 + 4 + 1;
 
-        size += GameEffect::MAX_EFFECT_COUNT * GameEffect::get_size();
+        size += GameEffectInAction::MAX_EFFECT_COUNT * GameEffectInAction::get_size();
 
         if decors.is_some() {
             size += decors.unwrap().len() * 32;

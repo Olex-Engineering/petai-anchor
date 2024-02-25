@@ -5,7 +5,6 @@ import { statePda, petCollectionMint, assetCollectionMint, tokenMint, realDogsSt
 
 describe("Initialization and state", () => {
   anchor.setProvider(provider);
-  
 
   it("Is initialized!", async () => {
     try {

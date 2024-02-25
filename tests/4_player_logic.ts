@@ -20,6 +20,13 @@ describe("Player logic", () => {
             signature: airddropTx
         });
 
+        const effectName = 'Test effect';
+
+        const [effectState] = anchor.web3.PublicKey.findProgramAddressSync(
+          [Buffer.from(effectName)],
+          program.programId
+        );
+
         const tokenAccount = getAssociatedTokenAddressSync(petNftMint, secondUserProvider.wallet.publicKey);
 
         try {
@@ -48,9 +55,15 @@ describe("Player logic", () => {
             clockworkProgram: clockworkProvider.threadProgram.programId,
             thread: threadAddress
           })
+          .remainingAccounts([{
+            pubkey: effectState,
+            isSigner: false,
+            isWritable: false
+          }])
           .preInstructions([anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })])
           .rpc()
 
+          console.log(txPet);
           await print_thread(clockworkProvider, threadAddress);
         } catch (error) {
           console.log(error);

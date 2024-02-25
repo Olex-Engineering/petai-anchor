@@ -1,12 +1,21 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{metadata::Metadata as MetadataProgram, token::Mint};
 
-use crate::{constants::{PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, states::{player_state::PlayerState, program_state::ProgramState}, PetState, PetStateUpdates};
+use crate::{constants::{PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, states::{player_state::PlayerState, program_state::ProgramState}, EffectState, PetState, PetStateUpdates};
 
 use clockwork_sdk::state::Thread;
 
-pub fn update_pet_state_cron(ctx: Context<UpdatePetStateCron>, _: Pubkey) -> Result<()> {
+pub fn update_pet_state_cron<'info>(
+    ctx: Context<'_, '_, 'info, 'info, UpdatePetStateCron<'info>>,
+    _: Pubkey
+) -> Result<()> {
     let pet = &mut ctx.accounts.pet_state;
+
+    // Effects that can be setted randomly
+    let effects: Vec<Account<EffectState>> = ctx.remaining_accounts.iter().map(|account: & AccountInfo| {
+        let effect = Account::<EffectState>::try_from(account).unwrap();
+        return effect;
+    }).collect();
 
     // Decrease pet state parameters
     pet.decrease_pet_state_params(PetStateUpdates {

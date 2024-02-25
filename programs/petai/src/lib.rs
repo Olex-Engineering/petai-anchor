@@ -44,8 +44,8 @@ pub mod petai {
         );
     }
 
-    pub fn init_pet(
-        ctx: Context<InitPet>,
+    pub fn init_pet<'info>(
+        ctx: Context<'_, '_, 'info, 'info, InitPet<'info>>,
         pet_states: Vec<Vec<String>>,
         thread_id: Vec<u8>,
     ) -> Result<()> {
@@ -56,7 +56,10 @@ pub mod petai {
         );
     }
 
-    pub fn update_pet_state_cron(ctx: Context<UpdatePetStateCron>, player_id: Pubkey) -> Result<()> {
+    pub fn update_pet_state_cron<'info>(
+        ctx: Context<'_, '_, 'info, 'info, UpdatePetStateCron<'info>>,
+        player_id: Pubkey
+    ) -> Result<()> {
         return instructions::update_pet_state_cron(ctx, player_id);
     }
 
@@ -66,6 +69,11 @@ pub mod petai {
 
     pub fn update_player_pet(ctx: Context<UpdatePlayerPet>) -> Result<()> {
         return instructions::update_player_pet(ctx);
+    }
+
+    // Effects
+    pub fn put_effect(ctx: Context<PutEffect>, effect_args: EffectArgs) -> Result<()> {
+        return instructions::put_effect(ctx, effect_args);
     }
 
     // Assets

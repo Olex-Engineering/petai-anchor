@@ -1,23 +1,17 @@
 pub use anchor_lang::prelude::*;
 
+use crate::{EffectArgs, EffectState};
+
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct GameEffect {
-    pub effect_type: GameEffectType, // 1
-    pub effect_power: u8, // 1
+pub struct GameEffectInAction {
+    pub effect: EffectArgs,
     pub end: i64 // 8
 }
 
-impl GameEffect {
+impl GameEffectInAction {
     pub fn get_size() -> usize {
-        return 1 + 1 + 8;
+        return 8 + 8 + EffectState::SIZE;
     }
 
     pub const MAX_EFFECT_COUNT: usize = 4;
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub enum GameEffectType {
-    Game,
-    Walk,
-    Food
 }

@@ -10,7 +10,9 @@ pub fn put_asset(ctx: Context<PutAsset>, asset_args: AssetArgs) -> Result<()> {
         price: asset_args.price,
         bump: ctx.bumps.asset_state,
         is_can_be_collected: asset_args.is_can_be_collected,
-        collectable_time_diff: asset_args.collectable_time_diff
+        collectable_time_diff: asset_args.collectable_time_diff,
+        remove_effect: asset_args.remove_effect,
+        add_effect: asset_args.add_effect
     });
 
     return Ok(());
