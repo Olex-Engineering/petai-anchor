@@ -7,9 +7,9 @@ pub struct AssetState {
     pub increase_loneliness: u8, // 1
     pub increase_love: u8, // 1
     pub price: u64, // 8
-    pub is_can_be_collected: bool, // 1
     pub remove_effect: Option<Pubkey>, // 33
     pub add_effect: Option<Pubkey>, // 33
+    pub is_can_be_collected: bool, // 1
     pub collectable_time_diff: Option<i64>, // 9
     pub bump: u8 // 1
 }

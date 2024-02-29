@@ -1615,6 +1615,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "arrayref",
  "clockwork-sdk",
  "mpl-token-metadata 4.0.0",
 ]

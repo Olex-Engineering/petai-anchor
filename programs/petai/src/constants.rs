@@ -12,6 +12,9 @@ pub const TRANSFER_TO_REAL_DOG_PERCENT: u8 = 30;
 pub const BURN_PERCENT: u8 = 65;
 pub const PROGRAM_COMISSION_PERCENT: u8 = 5;
 
+// SYSVAR
+pub const BLOCK_HASHES: &str = "SysvarRecentB1ockHashes11111111111111111111";
+
 // CLOCKWORK
 // Every second in testing mode
 #[cfg(feature= "testing")]
@@ -23,7 +26,7 @@ pub const PLAYER_STATE_CRON_SHEDULER: &str = "0 0 0/1 1/1 * ? *";
 #[cfg(not(any(feature= "testing", feature= "dev")))]
 pub const PLAYER_STATE_CRON_SHEDULER: &str = "0 0 0/4 1/1 * ? *";
 
-pub const PLAYER_CLOCKWORK_FEE_IN_SOL: f64 = 0.005856; // For two years
+pub const PLAYER_CLOCKWORK_FEE_IN_SOL: f64 = 0.1; // Clockwork and Metamask update fee's for one year
 
 // FEE's
 pub const SELLER_FEE: u16 = 500;

@@ -1,9 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
-import { getAssociatedTokenAddress, getAccount, getOrCreateAssociatedTokenAccount, createAssociatedTokenAccountInstruction, createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { getAssociatedTokenAddress, getAccount, createAssociatedTokenAccountInstruction, createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { expect } from "chai";
 import { ASSET_COLLECTION_MINT_SEED, ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, PET_COLLECTION_MINT_SEED, PET_NFT_MINT_SEED, TOKEN_MINT_SEED, program, provider, secondUserProgram, secondUserProvider } from "./constants";
 import { petCollectionMint, statePda, petCollectionMetadata, petCollectionMasterEdition, assetCollectionMint, assetMint, assetCollectionMetadata, assetCollectionMasterEdition, assetMetadata, tokenMint, tokenMetadata, getPetNftMint, getPetMatadata, getPetMasterEdition } from "./pdas";
-import { createNft } from "@metaplex-foundation/mpl-token-metadata";
 
 describe("Token logic", () => {
   anchor.setProvider(provider);

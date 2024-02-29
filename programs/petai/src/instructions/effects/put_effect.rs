@@ -9,8 +9,8 @@ pub fn put_effect(ctx: Context<PutEffect>, effect: EffectArgs) -> Result<()> {
         loneliness_impact: effect.loneliness_impact,
         food_impact: effect.food_impact,
         love_impact: effect.love_impact,
-        chance_of_auto_set_on_bad_state: effect.chance_of_auto_set_on_bad_state,
-        duration_in_hours: effect.duration_in_hours,
+        auto_set: effect.auto_set,
+        duration: effect.duration,
         bump: ctx.bumps.effect_state
     });
 

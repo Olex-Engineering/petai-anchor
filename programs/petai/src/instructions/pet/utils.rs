@@ -1,9 +1,11 @@
+use std::str::FromStr;
+
 pub use anchor_lang::prelude::*;
-use anchor_lang::{solana_program::{entrypoint::ProgramResult, instruction::Instruction, native_token::LAMPORTS_PER_SOL}, InstructionData};
+use anchor_lang::{solana_program::{self, entrypoint::ProgramResult, instruction::Instruction, native_token::LAMPORTS_PER_SOL}, InstructionData};
 use anchor_spl::{metadata::{Metadata as MetadataProgram, MetadataAccount}, token::Mint};
 
 
-use crate::{constants::{PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PROGRAM_STATE_SEED}, PetState, PlayerState, ProgramState, ID};
+use crate::{constants::{BLOCK_HASHES, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_CRON_SHEDULER, PROGRAM_STATE_SEED}, PetState, PlayerState, ProgramState, ID};
 
 pub struct StartPetUpdateCronThreadAccounts<'info> {
     pub player_state: Account<'info, PlayerState>,
@@ -16,7 +18,8 @@ pub struct StartPetUpdateCronThreadAccounts<'info> {
     pub clockwork_program: Program<'info, clockwork_sdk::ThreadProgram>,
     pub metadata_program: Program<'info, MetadataProgram>,
     pub system_program: Program<'info, System>,
-    pub effects_metas: Vec<AccountMeta>
+    pub master_edition: UncheckedAccount<'info>,
+    pub effects_metas: Vec<AccountMeta>,
 }
 
 
@@ -30,6 +33,10 @@ pub fn start_pet_update_cron_tread(accounts: &mut StartPetUpdateCronThreadAccoun
         pet_nft_mint: accounts.pet_nft_mint.key(),
         metadata_program: accounts.metadata_program.key(),
         system_program: accounts.system_program.key(),
+        metadata_account: accounts.metadata_account.key(),
+        master_edition: accounts.master_edition.key(),
+        recent_slothashes: Pubkey::from_str(BLOCK_HASHES).unwrap(),
+        sysvar_instructions: solana_program::sysvar::instructions::id(),
     }
     .to_account_metas(Some(true));
 

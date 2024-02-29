@@ -1,9 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
-import { MPL_TOKEN_METADATA_PROGRAM_ID, clockworkProvider, program, provider, secondUserProgram, secondUserProvider, threadId } from "./constants";
-import { statePda, playerState, petCollectionMint, petCollectionMetadata, petCollectionMasterEdition, threadAddress, realDogsState, getPetNftMint, getPetState, getPetMatadata, getRandomTreadIdWithAddress, getThreadAddressById } from "./pdas";
+import { MPL_TOKEN_METADATA_PROGRAM_ID, SLOTHASHES_SYSVAR, clockworkProvider, program, provider, secondUserProgram, secondUserProvider, threadId } from "./constants";
+import { statePda, playerState, petCollectionMint, petCollectionMetadata, petCollectionMasterEdition, threadAddress, realDogsState, getPetNftMint, getPetState, getPetMatadata, getRandomTreadIdWithAddress, getThreadAddressById, getPetMasterEdition } from "./pdas";
 import { print_thread } from "./utils";
 import { expect } from "chai";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { fetchMetadata, getMetadataAccountDataSerializer } from "@metaplex-foundation/mpl-token-metadata";
 
 describe("Player logic", () => {
     anchor.setProvider(provider);
@@ -41,7 +42,7 @@ describe("Player logic", () => {
           .rpc()
 
           const txPet = await secondUserProgram.methods.initPet(
-            [],
+            [['bad_state', 'ok_state', 'good_state', 'super_state']],
             Buffer.from(threadId),
           )
           .accounts({
@@ -51,6 +52,7 @@ describe("Player logic", () => {
             petNftMint: petNftMint,
             petNftMintAta: tokenAccount,
             metadataAccount: getPetMatadata(petNftMint)[0],
+            masterEdition: getPetMasterEdition(petNftMint)[0],
             metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
             clockworkProgram: clockworkProvider.threadProgram.programId,
             thread: threadAddress
@@ -80,7 +82,16 @@ describe("Player logic", () => {
           setTimeout(() => {
             const interval = setInterval(async () => {
               const petStateAccount = await program.account.petState.fetch(getPetState(petNftMint)[0]);
+
               initalFood = petStateAccount.food;
+
+              const metadata = await provider.connection.getAccountInfo(getPetMatadata(petNftMint)[0]);
+              const metadataParser = getMetadataAccountDataSerializer();
+              const [data]= metadataParser.deserialize(metadata.data);
+
+              console.log('PET_CONDITON_CHANGED: ', petStateAccount.condition)
+              console.log('PET_UPDATES_NUMBER_CHANGED: ', petStateAccount.updatesNumber)
+              console.log('METADATA_UDI CHANGED: ', data.uri);
               console.log('PET_STATE_FOOD_DECREASING: -' + petStateAccount.food);
             }, 1000);
         
@@ -102,7 +113,7 @@ describe("Player logic", () => {
           )
 
           const txPet = await secondUserProgram.methods.initPet(
-            [],
+            [['bad_state', 'ok_state', 'good_state', 'super_state']],
             Buffer.from(id),
           )
           .accounts({
@@ -112,12 +123,15 @@ describe("Player logic", () => {
             petNftMint: firstUserPetNftMint,
             petNftMintAta: secondUserTokenAccountWithFirstUserNft,
             metadataAccount: getPetMatadata(firstUserPetNftMint)[0],
+            masterEdition: getPetMasterEdition(firstUserPetNftMint)[0],
             metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
             clockworkProgram: clockworkProvider.threadProgram.programId,
             thread: thread[0]
           })
           .preInstructions([anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })])
           .rpc()
+
+          await print_thread(clockworkProvider, thread[0]);
         } catch (error) {
           console.log(error);
           expect(error).not.exist;
@@ -157,7 +171,9 @@ describe("Player logic", () => {
             newPetNftMint: petNftMint,
             newPetNftMintAta: tokenAccount,
             metadataAccount: getPetMatadata(petNftMint)[0],
+            masterEdition: getPetMasterEdition(petNftMint)[0],
             metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
+            recentSlothashes: SLOTHASHES_SYSVAR,
             clockworkProgram: clockworkProvider.threadProgram.programId,
             thread: getThreadAddressById(petState.threadId.toString())[0]
           })

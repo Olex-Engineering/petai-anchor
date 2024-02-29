@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::GameEffectInAction;
+use crate::{EffectState, GameEffectInAction};
 
 #[account]
 #[derive(Default)]
@@ -14,6 +14,7 @@ pub struct PlayerState {
 }
 
 impl PlayerState {
+    #[inline(never)]
     pub fn get_size(
         decors: Option<Vec<Pubkey>>
     ) -> usize {
@@ -26,6 +27,36 @@ impl PlayerState {
         }
 
         return size;
+    }
+
+    #[inline(never)]
+    pub fn add_effect(&mut self, effect: EffectState) -> &mut Self {
+        let game_effect = GameEffectInAction::from_effect(effect);
+        self.current_effects.push(game_effect);
+
+        return self;
+    }
+
+    #[inline(never)]
+    pub fn remove_effect(&mut self, effect: EffectState) -> &mut Self {
+        let filtered_effects: Vec<GameEffectInAction> = self.current_effects.clone().into_iter()
+            .filter(|game_effect| return game_effect.effect.name != effect.name)
+            .collect();
+
+        self.current_effects = filtered_effects;
+
+        return self;
+    }
+
+    #[inline(never)]
+    pub fn remove_outdated_game_effected(&mut self) -> &mut Self {
+        let filtered_effects: Vec<GameEffectInAction> = self.current_effects.clone().into_iter()
+            .filter(|game_effect| return game_effect.end <= Clock::get().unwrap().unix_timestamp)
+            .collect();
+
+        self.current_effects = filtered_effects;
+
+        return self;
     }
 }
 

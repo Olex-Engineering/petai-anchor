@@ -1,12 +1,14 @@
+use std::str::FromStr;
+
 pub use anchor_lang::prelude::*;
-use anchor_lang::{solana_program::{instruction::Instruction, native_token::LAMPORTS_PER_SOL}, InstructionData};
+use anchor_lang::{solana_program::{self, instruction::Instruction, native_token::LAMPORTS_PER_SOL}, system_program::{transfer, Transfer}, InstructionData};
 use anchor_spl::{metadata::{Metadata as MetadataProgram, MetadataAccount}, token::{Mint, TokenAccount}};
 
 use clockwork_sdk::state::ThreadSettings;
 use clockwork_sdk::state::Thread;
-use mpl_token_metadata::accounts::Metadata;
+use mpl_token_metadata::accounts::{MasterEdition, Metadata};
 
-use crate::{constants::{PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, errors::PetaiErrorCode, PetState, PlayerState, ProgramState, ID};
+use crate::{constants::{BLOCK_HASHES, PET_STATE_SEED, PLAYER_CLOCKWORK_FEE_IN_SOL, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, errors::PetaiErrorCode, PetState, PlayerState, ProgramState, ID};
 
 pub fn update_player_pet(ctx: Context<UpdatePlayerPet>) -> Result<()> {
     require!(ctx.accounts.new_pet_nft_mint_ata.amount == 1, PetaiErrorCode::InvalidPetNftAta);
@@ -22,7 +24,11 @@ pub fn update_player_pet(ctx: Context<UpdatePlayerPet>) -> Result<()> {
             thread: ctx.accounts.thread.key(),
             pet_nft_mint: ctx.accounts.new_pet_nft_mint.key(),
             metadata_program: ctx.accounts.metadata_program.key(),
+            metadata_account: ctx.accounts.metadata_account.key(),
+            master_edition: ctx.accounts.master_edition.key(),
             system_program: ctx.accounts.system_program.key(),
+            recent_slothashes: Pubkey::from_str(BLOCK_HASHES).unwrap(),
+            sysvar_instructions: solana_program::sysvar::instructions::id(),
         }
         .to_account_metas(Some(true)),
         data: crate::instruction::UpdatePetStateCron {
@@ -41,12 +47,24 @@ pub fn update_player_pet(ctx: Context<UpdatePlayerPet>) -> Result<()> {
             &[&[PROGRAM_STATE_SEED.as_bytes(), &[ctx.accounts.state.bump]]],
         ),
         ThreadSettings {
-            fee: Some((PLAYER_CLOCKWORK_FEE_IN_SOL * LAMPORTS_PER_SOL as f64) as u64),
+            fee: None,
             instructions: Some(vec![new_target_ix.into()]),
             name: None,
             rate_limit: None,
             trigger: None,
         }
+    )?;
+
+    // Transfer SOL from payer to the thread.
+    transfer(
+        CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.initializer.to_account_info(),
+                to: ctx.accounts.thread.to_account_info(),
+            },
+        ),
+        (PLAYER_CLOCKWORK_FEE_IN_SOL * LAMPORTS_PER_SOL as f64) as u64
     )?;
     
     return Ok(());
@@ -84,6 +102,12 @@ pub struct UpdatePlayerPet<'info> {
         address=Metadata::find_pda(&new_pet_nft_mint.key()).0
     )]
     pub metadata_account: Account<'info, MetadataAccount>,
+    /// CHECK: verify address
+    #[account(
+        mut,
+        address=MasterEdition::find_pda(&new_pet_nft_mint.key()).0
+    )]
+    pub master_edition: UncheckedAccount<'info>,
 
     // Signer
     #[account(mut)]
@@ -100,5 +124,5 @@ pub struct UpdatePlayerPet<'info> {
     #[account(address = clockwork_sdk::ID)]
     pub clockwork_program: Program<'info, clockwork_sdk::ThreadProgram>,
     pub metadata_program: Program<'info, MetadataProgram>,
-    pub system_program: Program<'info, System>
+    pub system_program: Program<'info, System>,
 }

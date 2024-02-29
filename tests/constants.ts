@@ -18,6 +18,8 @@ export const ASSET_TEST_MINT_SEED = 'asset-test-mint';
 export const MPL_TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 export const secondUser = anchor.web3.Keypair.generate();
 
+export const SLOTHASHES_SYSVAR = new anchor.web3.PublicKey('SysvarRecentB1ockHashes11111111111111111111');
+
 export const program = anchor.workspace.Petai as Program<Petai>;
 
 // Configure the client to use the local cluster.

@@ -24,8 +24,15 @@ describe("Effects logic", () => {
         lonelinessImpact: 1,
         foodImpact: 2,
         loveImpact: 1,
-        chanceOfAutoSetOnBadState: null,
-        durationInHours: 2,
+        autoSet: {
+          chanceOfAutoSet: 2,
+          targetPetConditions: [
+            {
+              super: {}
+            },
+          ]
+        }, // 50% = 100 / 2
+        duration: 20, // 20 seconds
       })
     .accounts({
       effectState: effectState,

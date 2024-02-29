@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { getAssociatedTokenAddress, getAccount, createTransferInstruction, createAssociatedTokenAccountInstruction, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 import { expect } from "chai";
 import { ASSET_TEST_MINT_SEED, MPL_TOKEN_METADATA_PROGRAM_ID, program, provider, secondUserProgram, secondUserProvider } from "./constants";
-import { statePda, assetMint, assetState, assetMetadata, playerState, tokenMint, freeAssetState, getPetNftMint, getPetState } from "./pdas";
+import { statePda, assetMint, assetState, assetMetadata, playerState, tokenMint, freeAssetState, getPetNftMint, getPetState, getPetMasterEdition, getPetMatadata } from "./pdas";
 
 describe("Assets logic", () => {
   anchor.setProvider(provider);
@@ -13,17 +13,24 @@ describe("Assets logic", () => {
       provider.wallet.publicKey
     )
 
+    const effectName = 'Test effect';
+
+    const [effectState] = anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from(effectName)],
+        program.programId
+      );
+
     await program.methods.putAsset(
       {
         assetMint: assetMint,
-        increaseFood: 1,
-        increaseLoneliness: 0,
-        increaseLove: 0,
+        increaseFood: 100,
+        increaseLoneliness: 100,
+        increaseLove: 100,
         price: new anchor.BN(10),
         isCanBeCollected: true,
         collectableTimeDiff: new anchor.BN(5),
         removeEffect: null,
-        addEffect: null
+        addEffect: effectState
       })
     .accounts({
       assetState: assetState,
@@ -35,9 +42,9 @@ describe("Assets logic", () => {
     const assetStatePda = await program.account.assetState.fetch(assetState);
     const account = await getAccount(provider.connection, tokenAccount);
 
-    expect(assetStatePda.increaseFood).to.eq(1);
-    expect(assetStatePda.increaseLoneliness).to.eq(0);
-    expect(assetStatePda.increaseLove).to.eq(0);
+    expect(assetStatePda.increaseFood).to.eq(100);
+    expect(assetStatePda.increaseLoneliness).to.eq(100);
+    expect(assetStatePda.increaseLove).to.eq(100);
     expect(assetStatePda.key.toBase58()).to.eq(assetMint.toBase58());
     expect(account.amount).to.eq(BigInt(10));
   });
@@ -76,16 +83,29 @@ describe("Assets logic", () => {
 
     const [petNftMint] = getPetNftMint(secondUserProvider.wallet.publicKey);
 
+    const effectName = 'Test effect';
+
+    const [effectState] = anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from(effectName)],
+        program.programId
+      );
+
+
     // Second user use 2 assets
     try {
       await secondUserProgram.methods.useAsset(ASSET_TEST_MINT_SEED, 2)
       .accounts({
         petState: getPetState(petNftMint)[0],
         assetState: assetState,
+        playerState: playerState,
         state: statePda,
         assetMint: assetMint,
-        assetMetadataAccount: assetMetadata,
         ataAccount: secondTokenAccount,
+        addEffect: effectState,
+        removeEffect: null,
+        petNftMint: petNftMint,
+        masterEdition: getPetMasterEdition(petNftMint)[0],
+        metadataAccount: getPetMatadata(petNftMint)[0],
         metadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
         sysvarInstructions: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
       })
@@ -96,9 +116,11 @@ describe("Assets logic", () => {
     
 
     const petStateAccount = await program.account.petState.fetch(getPetState(petNftMint)[0]);
+    const playerStateAcount = await program.account.playerState.fetch(playerState);
 
     account = await getAccount(provider.connection, secondTokenAccount);
     
+    expect(playerStateAcount.currentEffects.length).to.not.below(1);
     expect(petStateAccount.condition).to.deep.eq({ super: {} });
     expect(account.amount).to.equal(BigInt(8));
   });

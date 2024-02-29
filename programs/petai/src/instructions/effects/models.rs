@@ -1,7 +1,7 @@
 
 pub use anchor_lang::prelude::*;
 
-use crate::EffectType;
+use crate::{EffectAutoSetOptions, EffectType};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct EffectArgs {
@@ -10,6 +10,6 @@ pub struct EffectArgs {
     pub loneliness_impact: u8,
     pub food_impact: u8,
     pub love_impact: u8,
-    pub chance_of_auto_set_on_bad_state: Option<u8>, 
-    pub duration_in_hours: u32,
+    pub auto_set: Option<EffectAutoSetOptions>,
+    pub duration: u32, // duration in seconds
 }

@@ -2,7 +2,7 @@ pub use anchor_lang::prelude::*;
 use anchor_spl::{metadata::{Metadata as MetadataProgram, MetadataAccount}, token::{Mint, TokenAccount}};
 
 use clockwork_sdk::state::Thread;
-use mpl_token_metadata::accounts::Metadata;
+use mpl_token_metadata::accounts::{MasterEdition, Metadata};
 
 use crate::{constants::{PET_STATE_SEED, PLAYER_STATE_SEED, PROGRAM_STATE_SEED}, errors::PetaiErrorCode, start_pet_update_cron_tread, EffectState, PetState, PlayerState, ProgramState, StartPetUpdateCronThreadAccounts};
 
@@ -37,8 +37,6 @@ pub fn init_pet<'info>(
         }
     }).collect();
     
-    msg!(&effects_for_update_pet_cron.len().to_string());
-
     start_pet_update_cron_tread(
         &mut StartPetUpdateCronThreadAccounts {
             player_state: ctx.accounts.player_state.clone(),
@@ -49,6 +47,7 @@ pub fn init_pet<'info>(
             metadata_program: ctx.accounts.metadata_program.clone(),
             system_program: ctx.accounts.system_program.clone(),
             metadata_account: ctx.accounts.metadata_account.clone(),
+            master_edition: ctx.accounts.master_edition.clone(),
             initializer: ctx.accounts.initializer.clone(),
             clockwork_program: ctx.accounts.clockwork_program.clone(),
             effects_metas: effects_for_update_pet_cron
@@ -97,6 +96,12 @@ pub struct InitPet<'info> {
         address=Metadata::find_pda(&pet_nft_mint.key()).0
     )]
     pub metadata_account: Account<'info, MetadataAccount>,
+    /// CHECK: verify address
+    #[account(
+        mut,
+        address=MasterEdition::find_pda(&pet_nft_mint.key()).0
+    )]
+    pub master_edition: UncheckedAccount<'info>,
 
     // Signer
     #[account(mut)]
@@ -111,5 +116,5 @@ pub struct InitPet<'info> {
     pub clockwork_program: Program<'info, clockwork_sdk::ThreadProgram>,
     pub metadata_program: Program<'info, MetadataProgram>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>
+    pub rent: Sysvar<'info, Rent>,
 }
